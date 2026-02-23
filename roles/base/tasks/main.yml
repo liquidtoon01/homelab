@@ -1,0 +1,43 @@
+---
+- name: Update apt cache
+  ansible.builtin.apt:
+    update_cache: yes
+    cache_valid_time: 3600
+
+- name: Install common dependencies
+  ansible.builtin.apt:
+    name:
+      - apt-transport-https
+      - ca-certificates
+      - curl
+      - gnupg
+      - lsb-release
+      - software-properties-common
+      - python3-pip
+      - git
+      - wget
+      - unzip
+      - conntrack
+      - socat
+    state: present
+    update_cache: yes
+
+- name: Install Docker prerequisites
+  ansible.builtin.apt:
+    name:
+      - docker.io
+      - docker-compose
+    state: present
+
+- name: Start and enable Docker service
+  ansible.builtin.systemd:
+    name: docker
+    state: started
+    enabled: yes
+
+- name: Add current user to docker group
+  ansible.builtin.user:
+    name: "{{ ansible_user | default(ansible_env.USER) }}"
+    groups: docker
+    append: yes
+  when: ansible_user is defined or ansible_env.USER is defined

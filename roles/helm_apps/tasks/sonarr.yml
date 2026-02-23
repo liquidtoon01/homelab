@@ -1,0 +1,38 @@
+---
+- name: Create media namespace
+  ansible.builtin.command: kubectl create namespace {{ sonarr_namespace }}
+  failed_when: false
+  changed_when: false
+
+- name: Create Sonarr values file
+  ansible.builtin.copy:
+    dest: /tmp/sonarr-values.yaml
+    content: |
+      service:
+        type: LoadBalancer
+        port: 8989
+        annotations:
+          tailscale.com/expose: "true"
+          tailscale.com/hostname: "{{ tailscale_sonarr_hostname | default('sonarr') }}"
+      
+      persistence:
+        config:
+          enabled: true
+          size: 1Gi
+          storageClass: "{{ storage_class }}"
+        media:
+          enabled: true
+          size: 50Gi
+          storageClass: "{{ storage_class }}"
+      
+      env:
+        TZ: "UTC"
+
+- name: Deploy Sonarr using Helm
+  ansible.builtin.command: >
+    helm upgrade --install sonarr pree-helm-charts/sonarr
+    --namespace {{ sonarr_namespace }}
+    --values /tmp/sonarr-values.yaml
+    {{ '--version ' + sonarr_chart_version if sonarr_chart_version else '' }}
+    --wait
+  changed_when: true

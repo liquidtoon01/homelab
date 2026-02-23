@@ -1,0 +1,53 @@
+---
+- name: Create Immich namespace
+  ansible.builtin.command: kubectl create namespace {{ immich_namespace }}
+  failed_when: false
+  changed_when: false
+
+- name: Create Immich values file
+  ansible.builtin.copy:
+    dest: /tmp/immich-values.yaml
+    content: |
+      image:
+        tag: release
+      
+      immich:
+        persistence:
+          library:
+            existingClaim: ""
+            size: 100Gi
+            storageClass: "{{ storage_class }}"
+      
+      server:
+        service:
+          type: LoadBalancer
+          port: 3001
+          annotations:
+            tailscale.com/expose: "true"
+            tailscale.com/hostname: "{{ tailscale_immich_hostname | default('immich') }}"
+      
+      postgresql:
+        enabled: true
+        primary:
+          persistence:
+            enabled: true
+            size: 10Gi
+            storageClass: "{{ storage_class }}"
+      
+      redis:
+        enabled: true
+        master:
+          persistence:
+            enabled: true
+            size: 1Gi
+            storageClass: "{{ storage_class }}"
+
+- name: Deploy Immich using Helm
+  ansible.builtin.command: >
+    helm upgrade --install immich immich/immich
+    --namespace {{ immich_namespace }}
+    --values /tmp/immich-values.yaml
+    {{ '--version ' + immich_chart_version if immich_chart_version else '' }}
+    --wait
+    --timeout 10m
+  changed_when: true

@@ -1,0 +1,38 @@
+---
+- name: Create qBittorrent values file
+  ansible.builtin.copy:
+    dest: /tmp/qbittorrent-values.yaml
+    content: |
+      service:
+        main:
+          type: LoadBalancer
+          ports:
+            http:
+              port: 8080
+          annotations:
+            tailscale.com/expose: "true"
+            tailscale.com/hostname: "{{ tailscale_qbittorrent_hostname | default('qbittorrent') }}"
+      
+      persistence:
+        config:
+          enabled: true
+          size: 1Gi
+          storageClass: "{{ storage_class }}"
+        downloads:
+          enabled: true
+          size: 100Gi
+          storageClass: "{{ storage_class }}"
+      
+      env:
+        TZ: "UTC"
+        PUID: "1000"
+        PGID: "1000"
+
+- name: Deploy qBittorrent using Helm
+  ansible.builtin.command: >
+    helm upgrade --install qbittorrent gabe565/qbittorrent
+    --namespace {{ qbittorrent_namespace }}
+    --values /tmp/qbittorrent-values.yaml
+    {{ '--version ' + qbittorrent_chart_version if qbittorrent_chart_version else '' }}
+    --wait
+  changed_when: true

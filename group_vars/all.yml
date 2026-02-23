@@ -1,0 +1,45 @@
+---
+# Global variables for all hosts
+
+# Minikube configuration
+minikube_version: "latest"
+minikube_driver: "docker"
+minikube_cpus: 2
+minikube_memory: "4096"
+minikube_disk_size: "20g"
+
+# kubectl configuration
+kubectl_version: "latest"
+
+# Helm configuration
+helm_version: "latest"
+
+# Tailscale configuration
+tailscale_auth_key: ""  # Set this to your Tailscale auth key
+
+# Tailscale Operator configuration
+# Create OAuth client at: https://login.tailscale.com/admin/settings/oauth
+tailscale_oauth_client_id: ""  # Set this to your Tailscale OAuth client ID
+tailscale_oauth_client_secret: ""  # Set this to your Tailscale OAuth client secret
+tailscale_operator_hostname: "ts-operator"
+
+# Tailscale Ingress hostnames (customize as needed)
+tailscale_gitea_hostname: "gitea"
+tailscale_gitea_ssh_hostname: "gitea-ssh"
+tailscale_sonarr_hostname: "sonarr"
+tailscale_headscale_hostname: "headscale"
+tailscale_immich_hostname: "immich"
+tailscale_qbittorrent_hostname: "qbittorrent"
+tailscale_pihole_hostname: "pihole"
+tailscale_pihole_dns_hostname: "pihole-dns"
+
+# Helm application namespaces
+gitea_namespace: "gitea"
+sonarr_namespace: "media"
+headscale_namespace: "headscale"
+immich_namespace: "immich"
+qbittorrent_namespace: "media"
+pihole_namespace: "pihole"
+
+# Storage configuration
+storage_class: "local-path"

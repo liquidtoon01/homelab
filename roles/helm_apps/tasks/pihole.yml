@@ -1,0 +1,56 @@
+---
+- name: Create Pi-hole namespace
+  ansible.builtin.command: kubectl create namespace {{ pihole_namespace }}
+  failed_when: false
+  changed_when: false
+
+- name: Create Pi-hole values file
+  ansible.builtin.copy:
+    dest: /tmp/pihole-values.yaml
+    content: |
+      serviceDns:
+        type: LoadBalancer
+        annotations:
+          tailscale.com/expose: "true"
+          tailscale.com/hostname: "{{ tailscale_pihole_dns_hostname | default('pihole-dns') }}"
+      
+      serviceWeb:
+        type: LoadBalancer
+        http:
+          enabled: true
+          port: 80
+        https:
+          enabled: false
+        annotations:
+          tailscale.com/expose: "true"
+          tailscale.com/hostname: "{{ tailscale_pihole_hostname | default('pihole') }}"
+      
+      persistentVolumeClaim:
+        enabled: true
+        storageClass: "{{ storage_class }}"
+        size: 1Gi
+      
+      adminPassword: "{{ pihole_admin_password }}"
+      
+      DNS1: "8.8.8.8"
+      DNS2: "8.8.4.4"
+      
+      doh:
+        enabled: false
+      
+      resources:
+        limits:
+          cpu: 500m
+          memory: 512Mi
+        requests:
+          cpu: 100m
+          memory: 128Mi
+
+- name: Deploy Pi-hole using Helm
+  ansible.builtin.command: >
+    helm upgrade --install pihole mojo2600/pihole
+    --namespace {{ pihole_namespace }}
+    --values /tmp/pihole-values.yaml
+    {{ '--version ' + pihole_chart_version if pihole_chart_version else '' }}
+    --wait
+  changed_when: true

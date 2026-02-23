@@ -1,0 +1,52 @@
+---
+- name: Get latest Helm version
+  ansible.builtin.uri:
+    url: https://api.github.com/repos/helm/helm/releases/latest
+    return_content: yes
+  register: helm_latest_release
+  when: helm_version == "latest"
+
+- name: Set Helm version fact
+  ansible.builtin.set_fact:
+    helm_install_version: "{{ helm_latest_release.json.tag_name if helm_version == 'latest' else helm_version }}"
+
+- name: Create temporary directory for Helm installation
+  ansible.builtin.tempfile:
+    state: directory
+    suffix: helm
+  register: helm_temp_dir
+
+- name: Download Helm archive
+  ansible.builtin.get_url:
+    url: "https://get.helm.sh/helm-{{ helm_install_version }}-linux-amd64.tar.gz"
+    dest: "{{ helm_temp_dir.path }}/helm.tar.gz"
+
+- name: Extract Helm archive
+  ansible.builtin.unarchive:
+    src: "{{ helm_temp_dir.path }}/helm.tar.gz"
+    dest: "{{ helm_temp_dir.path }}"
+    remote_src: yes
+
+- name: Copy Helm binary to install path
+  ansible.builtin.copy:
+    src: "{{ helm_temp_dir.path }}/linux-amd64/helm"
+    dest: "{{ helm_install_path }}/helm"
+    mode: '0755'
+    remote_src: yes
+
+- name: Remove temporary directory
+  ansible.builtin.file:
+    path: "{{ helm_temp_dir.path }}"
+    state: absent
+
+- name: Add Helm repositories
+  ansible.builtin.command: "helm repo add {{ item.name }} {{ item.url }}"
+  loop:
+    - { name: "stable", url: "https://charts.helm.sh/stable" }
+    - { name: "bitnami", url: "https://charts.bitnami.com/bitnami" }
+  changed_when: false
+  failed_when: false
+
+- name: Update Helm repositories
+  ansible.builtin.command: helm repo update
+  changed_when: false

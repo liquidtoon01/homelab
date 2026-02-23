@@ -1,0 +1,9 @@
+---
+# Helm applications playbook
+- name: Deploy Helm Applications
+  hosts: all
+  become: yes
+  
+  roles:
+    - role: helm_apps
+      tags: ['applications', 'helm']

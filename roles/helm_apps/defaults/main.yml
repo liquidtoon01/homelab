@@ -1,0 +1,25 @@
+---
+# Storage configuration
+storage_class: "local-path"
+
+# Namespace configuration
+gitea_namespace: "gitea"
+sonarr_namespace: "media"
+headscale_namespace: "headscale"
+immich_namespace: "immich"
+qbittorrent_namespace: "media"
+
+# Helm chart versions (use "latest" or specific version)
+gitea_chart_version: ""
+sonarr_chart_version: ""
+headscale_chart_version: ""
+immich_chart_version: ""
+qbittorrent_chart_version: ""
+pihole_chart_version: ""
+
+# Application configurations
+gitea_admin_username: "gitea_admin"
+gitea_admin_password: "changeme"
+gitea_admin_email: "admin@example.com"
+
+pihole_admin_password: "changeme"

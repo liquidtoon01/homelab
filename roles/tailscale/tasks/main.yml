@@ -1,0 +1,45 @@
+---
+- name: Add Tailscale GPG key
+  ansible.builtin.apt_key:
+    url: https://pkgs.tailscale.com/stable/ubuntu/noble.noarmor.gpg
+    state: present
+    keyring: /usr/share/keyrings/tailscale-archive-keyring.gpg
+
+- name: Add Tailscale repository
+  ansible.builtin.apt_repository:
+    repo: "deb [signed-by=/usr/share/keyrings/tailscale-archive-keyring.gpg] https://pkgs.tailscale.com/stable/ubuntu noble main"
+    state: present
+    filename: tailscale
+
+- name: Update apt cache
+  ansible.builtin.apt:
+    update_cache: yes
+
+- name: Install Tailscale
+  ansible.builtin.apt:
+    name: tailscale
+    state: present
+
+- name: Start and enable Tailscale service
+  ansible.builtin.systemd:
+    name: tailscaled
+    state: started
+    enabled: yes
+
+- name: Connect to Tailscale network
+  ansible.builtin.command: "tailscale up --authkey={{ tailscale_auth_key }}"
+  when: tailscale_auth_key | length > 0
+  register: tailscale_up
+  changed_when: "'Success' in tailscale_up.stdout"
+  failed_when: false
+
+- name: Display Tailscale status
+  ansible.builtin.command: tailscale status
+  register: tailscale_status
+  changed_when: false
+  failed_when: false
+
+- name: Show Tailscale status
+  ansible.builtin.debug:
+    msg: "{{ tailscale_status.stdout_lines }}"
+  when: tailscale_status.rc == 0

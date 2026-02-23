@@ -1,0 +1,48 @@
+---
+- name: Create Tailscale operator namespace
+  ansible.builtin.command: kubectl create namespace tailscale
+  failed_when: false
+  changed_when: false
+
+- name: Create Tailscale OAuth client secret
+  ansible.builtin.command: >
+    kubectl create secret generic operator-oauth
+    --from-literal=client_id={{ tailscale_oauth_client_id }}
+    --from-literal=client_secret={{ tailscale_oauth_client_secret }}
+    --namespace tailscale
+  when: tailscale_oauth_client_id is defined and tailscale_oauth_client_secret is defined
+  failed_when: false
+  changed_when: false
+
+- name: Create Tailscale operator values file
+  ansible.builtin.copy:
+    dest: /tmp/tailscale-operator-values.yaml
+    content: |
+      oauth:
+        clientId: "{{ tailscale_oauth_client_id }}"
+        clientSecret: "{{ tailscale_oauth_client_secret }}"
+      
+      apiServerProxyConfig:
+        mode: "true"
+      
+      operatorConfig:
+        image:
+          tag: "unstable"
+        hostname: "{{ tailscale_operator_hostname | default('ts-operator') }}"
+      
+      resources:
+        limits:
+          cpu: 500m
+          memory: 512Mi
+        requests:
+          cpu: 100m
+          memory: 128Mi
+
+- name: Deploy Tailscale operator using Helm
+  ansible.builtin.command: >
+    helm upgrade --install tailscale-operator tailscale/tailscale-operator
+    --namespace tailscale
+    --values /tmp/tailscale-operator-values.yaml
+    {{ '--version ' + tailscale_operator_chart_version if tailscale_operator_chart_version else '' }}
+    --wait
+  changed_when: true

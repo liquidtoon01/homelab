@@ -1,0 +1,65 @@
+---
+- name: Create Gitea namespace
+  kubernetes.core.k8s:
+    name: "{{ gitea_namespace }}"
+    api_version: v1
+    kind: Namespace
+    state: present
+  ignore_errors: yes
+
+- name: Create Gitea namespace (fallback)
+  ansible.builtin.command: kubectl create namespace {{ gitea_namespace }}
+  when: gitea_namespace is defined
+  failed_when: false
+  changed_when: false
+
+- name: Create Gitea values file
+  ansible.builtin.copy:
+    dest: /tmp/gitea-values.yaml
+    content: |
+      service:
+        http:
+          type: LoadBalancer
+          port: 3000
+          annotations:
+            tailscale.com/expose: "true"
+            tailscale.com/hostname: "{{ tailscale_gitea_hostname | default('gitea') }}"
+        ssh:
+          type: LoadBalancer
+          port: 22
+          annotations:
+            tailscale.com/expose: "true"
+            tailscale.com/hostname: "{{ tailscale_gitea_ssh_hostname | default('gitea-ssh') }}"
+      
+      gitea:
+        admin:
+          username: "{{ gitea_admin_username }}"
+          password: "{{ gitea_admin_password }}"
+          email: "{{ gitea_admin_email }}"
+        config:
+          database:
+            DB_TYPE: sqlite3
+          session:
+            PROVIDER: memory
+          cache:
+            ADAPTER: memory
+      
+      persistence:
+        enabled: true
+        size: 10Gi
+        storageClass: "{{ storage_class }}"
+      
+      postgresql:
+        enabled: false
+      
+      redis:
+        enabled: false
+
+- name: Deploy Gitea using Helm
+  ansible.builtin.command: >
+    helm upgrade --install gitea gitea/gitea
+    --namespace {{ gitea_namespace }}
+    --values /tmp/gitea-values.yaml
+    {{ '--version ' + gitea_chart_version if gitea_chart_version else '' }}
+    --wait
+  changed_when: true

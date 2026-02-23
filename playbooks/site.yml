@@ -1,0 +1,12 @@
+---
+# Main playbook - runs all provisioning tasks
+- name: Kimsufi Infrastructure Setup
+  hosts: all
+  become: yes
+  
+  tasks:
+    - name: Include infrastructure playbook
+      ansible.builtin.import_playbook: infrastructure.yml
+
+    - name: Include applications playbook
+      ansible.builtin.import_playbook: applications.yml

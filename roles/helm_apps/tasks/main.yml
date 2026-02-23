@@ -1,0 +1,41 @@
+---
+- name: Add Helm repositories for applications
+  ansible.builtin.command: "helm repo add {{ item.name }} {{ item.url }}"
+  loop:
+    - { name: "tailscale", url: "https://pkgs.tailscale.com/helmcharts" }
+    - { name: "gitea", url: "https://dl.gitea.com/charts/" }
+    - { name: "pree-helm-charts", url: "https://pree-dicted.github.io/helm-charts/" }
+    - { name: "headscale", url: "https://github.com/gabe565/charts" }
+    - { name: "immich", url: "https://immich-app.github.io/immich-charts" }
+    - { name: "gabe565", url: "https://charts.gabe565.com" }
+    - { name: "mojo2600", url: "https://mojo2600.github.io/pihole-kubernetes/" }
+  changed_when: false
+  failed_when: false
+
+- name: Update Helm repositories
+  ansible.builtin.command: helm repo update
+  changed_when: false
+
+- name: Deploy Tailscale operator
+  ansible.builtin.include_tasks: tailscale-operator.yml
+
+- name: Install Rancher local-path-provisioner for storage
+  ansible.builtin.include_tasks: storage.yml
+
+- name: Deploy Gitea
+  ansible.builtin.include_tasks: gitea.yml
+
+- name: Deploy Sonarr
+  ansible.builtin.include_tasks: sonarr.yml
+
+- name: Deploy Headscale
+  ansible.builtin.include_tasks: headscale.yml
+
+- name: Deploy Immich
+  ansible.builtin.include_tasks: immich.yml
+
+- name: Deploy qBittorrent
+  ansible.builtin.include_tasks: qbittorrent.yml
+
+- name: Deploy Pi-hole
+  ansible.builtin.include_tasks: pihole.yml

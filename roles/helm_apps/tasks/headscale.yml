@@ -1,0 +1,41 @@
+---
+- name: Create Headscale namespace
+  ansible.builtin.command: kubectl create namespace {{ headscale_namespace }}
+  failed_when: false
+  changed_when: false
+
+- name: Create Headscale values file
+  ansible.builtin.copy:
+    dest: /tmp/headscale-values.yaml
+    content: |
+      service:
+        type: LoadBalancer
+        port: 8080
+        annotations:
+          tailscale.com/expose: "true"
+          tailscale.com/hostname: "{{ tailscale_headscale_hostname | default('headscale') }}"
+      
+      persistence:
+        enabled: true
+        size: 1Gi
+        storageClass: "{{ storage_class }}"
+      
+      config:
+        server_url: http://headscale:8080
+        listen_addr: 0.0.0.0:8080
+        metrics_listen_addr: 0.0.0.0:9090
+        
+        ip_prefixes:
+          - 100.64.0.0/10
+        
+        log:
+          level: info
+
+- name: Deploy Headscale using Helm
+  ansible.builtin.command: >
+    helm upgrade --install headscale headscale/headscale
+    --namespace {{ headscale_namespace }}
+    --values /tmp/headscale-values.yaml
+    {{ '--version ' + headscale_chart_version if headscale_chart_version else '' }}
+    --wait
+  changed_when: true

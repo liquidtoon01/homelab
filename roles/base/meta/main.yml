@@ -1,0 +1,3 @@
+---
+# Base role - Install common dependencies required by other roles
+dependencies: []

@@ -1,0 +1,3 @@
+---
+kubectl_version: "latest"
+kubectl_install_path: "/usr/local/bin"

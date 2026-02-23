@@ -1,0 +1,56 @@
+---
+- name: Get latest Minikube version
+  ansible.builtin.uri:
+    url: https://api.github.com/repos/kubernetes/minikube/releases/latest
+    return_content: yes
+  register: minikube_latest_release
+  when: minikube_version == "latest"
+
+- name: Set Minikube version fact
+  ansible.builtin.set_fact:
+    minikube_install_version: "{{ minikube_latest_release.json.tag_name if minikube_version == 'latest' else minikube_version }}"
+
+- name: Check if Minikube is already installed
+  ansible.builtin.stat:
+    path: "{{ minikube_install_path }}/minikube"
+  register: minikube_binary
+
+- name: Download Minikube binary
+  ansible.builtin.get_url:
+    url: "https://github.com/kubernetes/minikube/releases/download/{{ minikube_install_version }}/minikube-linux-amd64"
+    dest: "{{ minikube_install_path }}/minikube"
+    mode: '0755'
+  when: not minikube_binary.stat.exists or minikube_version == "latest"
+
+- name: Check if Minikube cluster is running
+  ansible.builtin.command: minikube status
+  register: minikube_status
+  changed_when: false
+  failed_when: false
+
+- name: Start Minikube cluster
+  ansible.builtin.command: >
+    minikube start
+    --driver={{ minikube_driver }}
+    --cpus={{ minikube_cpus }}
+    --memory={{ minikube_memory }}
+    --disk-size={{ minikube_disk_size }}
+  when: minikube_status.rc != 0
+  environment:
+    CHANGE_MINIKUBE_NONE_USER: "true"
+
+- name: Enable Minikube addons
+  ansible.builtin.command: "minikube addons enable {{ item }}"
+  loop:
+    - storage-provisioner
+    - default-storageclass
+    - metrics-server
+  changed_when: false
+
+- name: Wait for Minikube to be ready
+  ansible.builtin.command: kubectl get nodes
+  register: kubectl_get_nodes
+  until: kubectl_get_nodes.rc == 0
+  retries: 10
+  delay: 10
+  changed_when: false

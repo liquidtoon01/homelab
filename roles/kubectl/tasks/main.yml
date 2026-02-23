@@ -1,0 +1,21 @@
+---
+- name: Get latest stable kubectl version
+  ansible.builtin.uri:
+    url: https://dl.k8s.io/release/stable.txt
+    return_content: yes
+  register: kubectl_stable_version
+  when: kubectl_version == "latest"
+
+- name: Set kubectl version fact
+  ansible.builtin.set_fact:
+    kubectl_install_version: "{{ kubectl_stable_version.content | trim if kubectl_version == 'latest' else kubectl_version }}"
+
+- name: Download kubectl binary
+  ansible.builtin.get_url:
+    url: "https://dl.k8s.io/release/{{ kubectl_install_version }}/bin/linux/amd64/kubectl"
+    dest: "{{ kubectl_install_path }}/kubectl"
+    mode: '0755'
+
+- name: Verify kubectl installation
+  ansible.builtin.command: kubectl version --client
+  changed_when: false
