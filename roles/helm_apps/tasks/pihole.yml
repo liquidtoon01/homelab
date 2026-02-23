@@ -3,6 +3,7 @@
   ansible.builtin.command: kubectl create namespace {{ pihole_namespace }}
   failed_when: false
   changed_when: false
+  become: no
 
 - name: Create Pi-hole values file
   ansible.builtin.copy:
@@ -54,3 +55,4 @@
     {{ '--version ' + pihole_chart_version if pihole_chart_version else '' }}
     --wait
   changed_when: true
+  become: no

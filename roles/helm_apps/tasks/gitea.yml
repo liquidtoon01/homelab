@@ -12,6 +12,7 @@
   when: gitea_namespace is defined
   failed_when: false
   changed_when: false
+  become: no
 
 - name: Create Gitea values file
   ansible.builtin.copy:
@@ -63,3 +64,4 @@
     {{ '--version ' + gitea_chart_version if gitea_chart_version else '' }}
     --wait
   changed_when: true
+  become: no

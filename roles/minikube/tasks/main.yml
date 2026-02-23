@@ -27,6 +27,7 @@
   register: minikube_status
   changed_when: false
   failed_when: false
+  become: no
 
 - name: Start Minikube cluster
   ansible.builtin.command: >
@@ -36,6 +37,7 @@
     --memory={{ minikube_memory }}
     --disk-size={{ minikube_disk_size }}
   when: minikube_status.rc != 0
+  become: no
   environment:
     CHANGE_MINIKUBE_NONE_USER: "true"
 
@@ -46,6 +48,7 @@
     - default-storageclass
     - metrics-server
   changed_when: false
+  become: no
 
 - name: Wait for Minikube to be ready
   ansible.builtin.command: kubectl get nodes
@@ -54,3 +57,4 @@
   retries: 10
   delay: 10
   changed_when: false
+  become: no

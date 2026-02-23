@@ -3,6 +3,7 @@
   ansible.builtin.command: kubectl create namespace {{ sonarr_namespace }}
   failed_when: false
   changed_when: false
+  become: no
 
 - name: Create Sonarr values file
   ansible.builtin.copy:
@@ -36,3 +37,4 @@
     {{ '--version ' + sonarr_chart_version if sonarr_chart_version else '' }}
     --wait
   changed_when: true
+  become: no

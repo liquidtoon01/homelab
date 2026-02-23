@@ -36,3 +36,4 @@
     {{ '--version ' + qbittorrent_chart_version if qbittorrent_chart_version else '' }}
     --wait
   changed_when: true
+  become: no

@@ -19,3 +19,4 @@
 - name: Verify kubectl installation
   ansible.builtin.command: kubectl version --client
   changed_when: false
+  become: no

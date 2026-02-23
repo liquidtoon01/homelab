@@ -3,6 +3,7 @@
   ansible.builtin.command: kubectl create namespace tailscale
   failed_when: false
   changed_when: false
+  become: no
 
 - name: Create Tailscale OAuth client secret
   ansible.builtin.command: >
@@ -13,6 +14,7 @@
   when: tailscale_oauth_client_id is defined and tailscale_oauth_client_secret is defined
   failed_when: false
   changed_when: false
+  become: no
 
 - name: Create Tailscale operator values file
   ansible.builtin.copy:
@@ -46,3 +48,4 @@
     {{ '--version ' + tailscale_operator_chart_version if tailscale_operator_chart_version else '' }}
     --wait
   changed_when: true
+  become: no
