@@ -35,9 +35,17 @@
     state: started
     enabled: yes
 
+- name: Get current username
+  ansible.builtin.command: whoami
+  register: current_user
+  changed_when: false
+  become: no
+
 - name: Add current user to docker group
   ansible.builtin.user:
-    name: "{{ ansible_user | default(ansible_env.USER) }}"
+    name: "{{ current_user.stdout }}"
     groups: docker
     append: yes
-  when: ansible_user is defined or ansible_env.USER is defined
+
+- name: Reset SSH connection to activate docker group
+  ansible.builtin.meta: reset_connection
