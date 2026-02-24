@@ -6,7 +6,6 @@
     - { name: "gitea", url: "https://dl.gitea.com/charts/" }
     - { name: "k8s-at-home", url: "https://k8s-at-home.com/charts/" }
     - { name: "gabe565", url: "https://charts.gabe565.com" }
-    - { name: "immich", url: "https://immich-app.github.io/immich-charts" }
     - { name: "mojo2600", url: "https://mojo2600.github.io/pihole-kubernetes/" }
   register: helm_repo_add_result
   changed_when: false
@@ -40,9 +39,6 @@
 
 - name: Deploy Headscale
   ansible.builtin.include_tasks: headscale.yml
-
-- name: Deploy Immich
-  ansible.builtin.include_tasks: immich.yml
 
 - name: Deploy qBittorrent
   ansible.builtin.include_tasks: qbittorrent.yml

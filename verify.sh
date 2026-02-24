@@ -91,7 +91,6 @@ check_file "roles/helm_apps/tasks/storage.yml"
 check_file "roles/helm_apps/tasks/gitea.yml"
 check_file "roles/helm_apps/tasks/sonarr.yml"
 check_file "roles/helm_apps/tasks/headscale.yml"
-check_file "roles/helm_apps/tasks/immich.yml"
 check_file "roles/helm_apps/tasks/qbittorrent.yml"
 check_file "roles/helm_apps/tasks/pihole.yml"
 

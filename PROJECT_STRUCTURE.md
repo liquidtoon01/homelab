@@ -90,7 +90,6 @@ kimsufi/
 │           ├── gitea.yml               # Deploy Gitea
 │           ├── sonarr.yml              # Deploy Sonarr
 │           ├── headscale.yml           # Deploy Headscale
-│           ├── immich.yml              # Deploy Immich
 │           ├── qbittorrent.yml         # Deploy qBittorrent
 │           └── pihole.yml              # Deploy Pi-hole
 │
@@ -250,7 +249,6 @@ Deploys all Helm-based applications.
 - `gitea.yml`: Self-hosted Git service
 - `sonarr.yml`: TV show PVR
 - `headscale.yml`: Self-hosted Tailscale control server
-- `immich.yml`: Photo and video backup
 - `qbittorrent.yml`: BitTorrent client
 - `pihole.yml`: Network-wide ad blocker and DNS server
 

@@ -65,7 +65,6 @@ sudo systemctl restart sshd
 ✅ Gitea (Git server) - `http://gitea`  
 ✅ Sonarr (TV shows) - `http://sonarr:8989`  
 ✅ Headscale (Tailscale controller) - `http://headscale:8080`  
-✅ Immich (Photos) - `http://immich:3001`  
 ✅ qBittorrent (Downloads) - `http://qbittorrent:8080`  
 ✅ Pi-hole (DNS/Ad blocker) - `http://pihole`  
 
@@ -75,7 +74,6 @@ sudo systemctl restart sshd
 Connect to your Tailnet on your device, then access applications via:
 - Gitea: `http://gitea`
 - Sonarr: `http://sonarr:8989`
-- Immich: `http://immich:3001`
 - qBittorrent: `http://qbittorrent:8080`
 - Headscale: `http://headscale:8080`
 - Pi-hole: `http://pihole`
@@ -103,7 +101,6 @@ minikube service <service-name> -n <namespace>
 After installation, access services at:
 - Gitea: `http://<minikube-ip>:<nodeport>`
 - Sonarr: `http://<minikube-ip>:<nodeport>`
-- Immich: `http://<minikube-ip>:<nodeport>`
 - qBittorrent: `http://<minikube-ip>:<nodeport>`
 - Headscale: `http://<minikube-ip>:<nodeport>`
 
@@ -122,9 +119,6 @@ Use `minikube service list` to see exact ports.
 **Pi-hole:**
 - Password: `changeme` (CHANGE THIS!)
 
-**Immich:**
-- Create account on first access
-
 ## Essential Commands
 
 ```bash
@@ -139,7 +133,6 @@ make check
 
 # View logs for a service
 make logs-gitea
-make logs-immich
 make logs-sonarr
 
 # Restart Minikube
@@ -159,7 +152,6 @@ kubectl get pods --all-namespaces
 # See specific namespace
 kubectl get pods -n gitea
 kubectl get pods -n media
-kubectl get pods -n immich
 
 # View logs
 kubectl logs -n <namespace> <pod-name> -f
@@ -219,9 +211,6 @@ ls -la
 # Backup Gitea
 kubectl exec -n gitea <pod-name> -- tar czf /tmp/backup.tar.gz /data
 kubectl cp gitea/<pod-name>:/tmp/backup.tar.gz ./gitea-backup.tar.gz
-
-# Backup Immich database
-kubectl exec -n immich <postgres-pod> -- pg_dump -U postgres immich > immich-backup.sql
 ```
 
 ## Updating Applications

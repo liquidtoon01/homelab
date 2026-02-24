@@ -162,7 +162,6 @@ This will:
 - Gitea (Git server)
 - Sonarr (TV shows)
 - Headscale (Tailscale controller)
-- Immich (Photos)
 - qBittorrent (Downloads)
 - Pi-hole (DNS/Ad blocking)
 
@@ -205,7 +204,6 @@ Once the Tailscale operator is configured and deployed, all applications are acc
 | Gitea SSH | `ssh://gitea-ssh` | Git SSH access |
 | Sonarr | `http://sonarr:8989` | TV show manager |
 | Headscale | `http://headscale:8080` | Tailscale control server |
-| Immich | `http://immich:3001` | Photo/video backup |
 | qBittorrent | `http://qbittorrent:8080` | BitTorrent client |
 | Pi-hole | `http://pihole` | Ad blocker web UI |
 
@@ -231,9 +229,6 @@ make services
 # Open Gitea in browser
 minikube service gitea-http -n gitea
 
-# Open Immich
-minikube service immich-server -n immich
-
 # Open Pi-hole
 minikube service pihole-web -n pihole
 ```
@@ -250,9 +245,6 @@ minikube service pihole-web -n pihole
 
 **Pi-hole:**
 - Password: `changeme` (CHANGE THIS!)
-
-**Immich:**
-- Create account on first access
 
 ---
 
@@ -318,7 +310,6 @@ See [Applications Guide](docs/applications.md#pi-hole) for details.
 
 Important data to backup:
 - Gitea repositories
-- Immich photos/database
 - Pi-hole configuration
 
 See [Applications Guide](docs/applications.md) for backup procedures.
@@ -332,7 +323,6 @@ See [Applications Guide](docs/applications.md) for backup procedures.
 ```bash
 # Use make shortcuts
 make logs-gitea
-make logs-immich
 make logs-pihole
 
 # Or directly
@@ -531,7 +521,6 @@ You now have a complete self-hosted infrastructure running:
 
 ✅ Kubernetes cluster (Minikube)  
 ✅ Git server (Gitea)  
-✅ Photo backup (Immich)  
 ✅ Media management (Sonarr, qBittorrent)  
 ✅ Ad blocking (Pi-hole)  
 ✅ VPN (Tailscale/Headscale)  

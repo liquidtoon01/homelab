@@ -35,7 +35,6 @@ tailscale_operator_hostname: "ts-operator"
 tailscale_gitea_hostname: "gitea"
 tailscale_sonarr_hostname: "sonarr"
 tailscale_headscale_hostname: "headscale"
-tailscale_immich_hostname: "immich"
 tailscale_qbittorrent_hostname: "qbittorrent"
 tailscale_pihole_hostname: "pihole"
 ```
@@ -72,7 +71,6 @@ Once deployed, you can access applications from any device on your Tailnet:
 | Gitea SSH | `ssh://gitea-ssh` | Git SSH access |
 | Sonarr | `http://sonarr:8989` | TV show PVR |
 | Headscale | `http://headscale:8080` | Tailscale control server |
-| Immich | `http://immich:3001` | Photo/video backup |
 | qBittorrent | `http://qbittorrent:8080` | BitTorrent client |
 | Pi-hole | `http://pihole` | Ad blocker web UI |
 

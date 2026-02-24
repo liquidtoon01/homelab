@@ -421,25 +421,6 @@ sudo systemctl restart sshd
    kubectl get pvc -n gitea
    ```
 
-### Immich Machine Learning Pod Crashes
-
-**Symptoms**: ML pod uses too much memory
-
-**Solutions**:
-
-1. Increase Minikube memory:
-   ```yaml
-   minikube_memory: "8192"  # 8GB
-   ```
-
-2. Disable ML features temporarily:
-   Edit Immich values to reduce ML resource usage
-
-3. Monitor resource usage:
-   ```bash
-   kubectl top pods -n immich
-   ```
-
 ### qBittorrent Won't Start
 
 **Solutions**:

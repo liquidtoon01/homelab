@@ -72,18 +72,14 @@ clean-apps: ## Uninstall all applications
 	helm uninstall sonarr -n media || true
 	helm uninstall qbittorrent -n media || true
 	helm uninstall headscale -n headscale || true
-	helm uninstall immich -n immich || true
 	helm uninstall pihole -n pihole || true
-	kubectl delete namespace gitea media headscale immich pihole || true
+	kubectl delete namespace gitea media headscale pihole || true
 
 logs-gitea: ## Show Gitea logs
 	kubectl logs -n gitea -l app.kubernetes.io/name=gitea --tail=100
 
 logs-sonarr: ## Show Sonarr logs
 	kubectl logs -n media -l app.kubernetes.io/name=sonarr --tail=100
-
-logs-immich: ## Show Immich logs
-	kubectl logs -n immich -l app.kubernetes.io/name=immich-server --tail=100
 
 logs-qbittorrent: ## Show qBittorrent logs
 	kubectl logs -n media -l app.kubernetes.io/name=qbittorrent --tail=100

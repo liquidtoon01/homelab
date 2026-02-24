@@ -264,7 +264,6 @@ kubectl rollout restart deploy/tailscale-operator -n tailscale
 Once configured, access all applications via Tailscale hostnames:
 - `http://gitea`
 - `http://sonarr:8989`
-- `http://immich:3001`
 - `http://qbittorrent:8080`
 - `http://pihole`
 

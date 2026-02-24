@@ -16,7 +16,6 @@ And deploys the following applications via Helm:
 - **Gitea** - Self-hosted Git service (accessible via Tailscale at `http://gitea`)
 - **Sonarr** - PVR for TV shows (accessible via Tailscale at `http://sonarr`)
 - **Headscale** - Self-hosted Tailscale control server (accessible via Tailscale at `http://headscale`)
-- **Immich** - Photo and video backup solution (accessible via Tailscale at `http://immich`)
 - **qBittorrent** - BitTorrent client (accessible via Tailscale at `http://qbittorrent`)
 - **Pi-hole** - Network-wide ad blocker and DNS server (accessible via Tailscale at `http://pihole`)
 

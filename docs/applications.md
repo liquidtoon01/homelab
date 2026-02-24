@@ -11,7 +11,6 @@ All applications are accessible via Tailscale hostnames. See [Tailscale Operator
 | Gitea | Self-hosted Git service | gitea | `http://gitea` | 3000 |
 | Sonarr | TV show PVR | media | `http://sonarr:8989` | 8989 |
 | Headscale | Self-hosted Tailscale control | headscale | `http://headscale:8080` | 8080 |
-| Immich | Photo/video backup | immich | `http://immich:3001` | 3001 |
 | qBittorrent | BitTorrent client | media | `http://qbittorrent:8080` | 8080 |
 | Pi-hole | Network-wide ad blocker & DNS | pihole | `http://pihole` | 80 |
 
@@ -209,75 +208,6 @@ kubectl exec -it -n headscale <pod-name> -- headscale routes list
 ### Persistent Data
 
 Location: `/etc/headscale` inside the pod
-
----
-
-## Immich
-
-**Purpose**: Self-hosted photo and video backup solution (Google Photos alternative).
-
-**Helm Chart**: https://artifacthub.io/packages/helm/immich/immich
-
-**Namespace**: `immich`
-
-### Access
-
-**Primary (Tailscale):**
-```bash
-# Web interface
-http://immich:3001
-```
-
-**Fallback (NodePort):**
-```bash
-# Get access URL
-minikube service immich-server -n immich
-```
-
-### Configuration
-
-Immich is configured with:
-- Library storage: 100Gi PVC
-- PostgreSQL database (10Gi)
-- Redis cache (1Gi)
-- Machine learning for face detection and object recognition
-
-### First-Time Setup
-
-1. Access the web interface
-2. Create an admin account
-3. Download mobile apps (iOS/Android)
-4. Configure backup settings in the app
-
-### Mobile Apps
-
-- iOS: Available on App Store
-- Android: Available on Google Play or F-Droid
-
-### Components
-
-Immich consists of multiple components:
-- immich-server: API server
-- immich-web: Web interface
-- immich-machine-learning: ML services for photos
-- PostgreSQL: Database
-- Redis: Caching
-
-### Backup
-
-```bash
-# Backup database
-kubectl exec -n immich <postgres-pod> -- pg_dump -U postgres immich > immich-db-backup.sql
-
-# Backup library (large!)
-kubectl exec -n immich <server-pod> -- tar czf /tmp/library-backup.tar.gz /usr/src/app/upload
-kubectl cp immich/<server-pod>:/tmp/library-backup.tar.gz ./immich-library-backup.tar.gz
-```
-
-### Persistent Data
-
-- Library: `/usr/src/app/upload` (100Gi)
-- Database: PostgreSQL PVC (10Gi)
 
 ---
 
