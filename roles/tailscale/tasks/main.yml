@@ -26,9 +26,15 @@
     state: started
     enabled: yes
 
+- name: Check if Tailscale auth key is provided
+  ansible.builtin.debug:
+    msg: "Tailscale auth key is {{ 'set' if (tailscale_auth_key is defined and tailscale_auth_key | length > 0) else 'NOT set - skipping connection' }}"
+
 - name: Connect to Tailscale network
   ansible.builtin.command: "tailscale up --authkey={{ tailscale_auth_key }}"
-  when: tailscale_auth_key | length > 0
+  when: 
+    - tailscale_auth_key is defined
+    - tailscale_auth_key | length > 0
   register: tailscale_up
   changed_when: "'Success' in tailscale_up.stdout"
   failed_when: false
