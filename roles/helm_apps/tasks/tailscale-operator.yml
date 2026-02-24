@@ -111,6 +111,12 @@
           - name: operator
             image: tailscale/k8s-operator:unstable
             env:
+            - name: KUBERNETES_SERVICE_HOST
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.hostIP
+            - name: KUBERNETES_SERVICE_PORT
+              value: "8443"
             - name: OPERATOR_HOSTNAME
               value: "{{ tailscale_operator_hostname | default('ts-operator') }}"
             - name: OPERATOR_SECRET
