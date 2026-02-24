@@ -122,7 +122,6 @@ The following ports are used (all on localhost/Minikube by default):
 - **Sonarr**: 8989
 - **qBittorrent**: 8080
 - **Headscale**: 8080
-- **Immich**: 3001
 - **Kubernetes API**: 8443 (Minikube)
 
 ## Post-Installation
