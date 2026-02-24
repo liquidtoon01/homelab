@@ -377,6 +377,82 @@ minikube start
 minikube status
 ```
 
+### Remote kubectl Access via SSH Tunnel
+
+You can manage your Kubernetes cluster from your local machine by setting up an SSH tunnel:
+
+**1. On your server, get the Minikube IP and port:**
+
+```bash
+minikube kubectl -- config view --minify --output jsonpath='{.clusters[0].cluster.server}'
+```
+
+This will show something like `https://192.168.49.2:8443`
+
+**2. On your local machine, create an SSH tunnel:**
+
+```bash
+# Forward the Kubernetes API port through SSH
+ssh -L 8443:$(minikube ip):8443 user@your-server-ip -N
+
+# Or run in background
+ssh -fNL 8443:$(minikube ip):8443 user@your-server-ip
+```
+
+**3. Copy the kubeconfig from the server:**
+
+```bash
+# On the server
+cat ~/.kube/config
+```
+
+Copy this content to your local `~/.kube/config` (or a separate file).
+
+**4. Update the local kubeconfig to use the tunnel:**
+
+Edit your local `~/.kube/config` and change the server URL:
+
+```yaml
+server: https://localhost:8443
+```
+
+Also, add this to skip certificate verification (development only):
+
+```yaml
+clusters:
+- cluster:
+    insecure-skip-tls-verify: true
+    server: https://localhost:8443
+  name: minikube
+```
+
+**5. Test the connection:**
+
+```bash
+kubectl get nodes
+kubectl get pods --all-namespaces
+```
+
+**Alternative: Use a dedicated kubeconfig file:**
+
+```bash
+# Set KUBECONFIG environment variable
+export KUBECONFIG=~/.kube/homelab-config
+
+# Or specify it with each command
+kubectl --kubeconfig ~/.kube/homelab-config get nodes
+```
+
+**Tip:** You can also use `sshuttle` for a more seamless VPN-like experience:
+
+```bash
+# Install sshuttle (macOS)
+brew install sshuttle
+
+# Create tunnel to server's network
+sshuttle -r user@your-server-ip $(minikube ip)/24
+```
+
 ---
 
 ## Troubleshooting
