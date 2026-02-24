@@ -13,7 +13,8 @@
   changed_when: false
 
 - name: Set standard as default storage class
-  ansible.builtin.command: kubectl patch storageclass standard -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'
+  ansible.builtin.command: >
+    kubectl patch storageclass standard -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'
   when: storage_check.rc == 0
   changed_when: false
   failed_when: false
