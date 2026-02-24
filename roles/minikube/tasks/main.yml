@@ -107,7 +107,7 @@
                 ttl 30
             }
             prometheus :9153
-            forward . /etc/resolv.conf {
+            forward . 9.9.9.9 149.112.112.112 1.1.1.1 {
                 max_concurrent 1000
             }
             cache 30
