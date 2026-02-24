@@ -93,7 +93,6 @@
             labels:
               app: headscale
           spec:
-            dnsPolicy: Default
             containers:
             - name: headscale
               image: headscale/headscale:latest

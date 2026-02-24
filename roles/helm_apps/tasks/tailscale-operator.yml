@@ -104,17 +104,11 @@
           labels:
             app: tailscale-operator
         spec:
-          hostNetwork: true
-          dnsPolicy: ClusterFirstWithHostNet
           serviceAccountName: operator
           containers:
           - name: operator
             image: tailscale/k8s-operator:unstable
             env:
-            - name: KUBERNETES_SERVICE_HOST
-              value: "127.0.0.1"
-            - name: KUBERNETES_SERVICE_PORT
-              value: "8443"
             - name: OPERATOR_HOSTNAME
               value: "{{ tailscale_operator_hostname | default('ts-operator') }}"
             - name: OPERATOR_SECRET
