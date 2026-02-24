@@ -1,2 +1,3 @@
 ---
-# Defaults are defined in group_vars/all.yml
+# Default empty - override in group_vars/all.yml on the server
+tailscale_auth_key: ""
