@@ -1,0 +1,15 @@
+---
+# Tailscale Operator configuration
+# Create OAuth client at: https://login.tailscale.com/admin/settings/oauth
+tailscale_oauth_client_id: ""  # Set this to your Tailscale OAuth client ID
+tailscale_oauth_client_secret: ""  # Set this to your Tailscale OAuth client secret
+tailscale_operator_hostname: "ts-operator"
+
+# Tailscale Ingress hostnames (customize as needed)
+tailscale_gitea_hostname: "gitea"
+tailscale_gitea_ssh_hostname: "gitea-ssh"
+tailscale_sonarr_hostname: "sonarr"
+tailscale_headscale_hostname: "headscale"
+tailscale_qbittorrent_hostname: "qbittorrent"
+tailscale_pihole_hostname: "pihole"
+tailscale_pihole_dns_hostname: "pihole-dns"
