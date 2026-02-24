@@ -75,13 +75,7 @@ This takes approximately 2-5 minutes.
 
 ### 4. Review and Configure Variables
 
-Edit the global variables file:
-
-```bash
-nano group_vars/all.yml
-```
-
-**Key settings to review:**
+**Key settings to review in Ansible Vault:**
 
 ```yaml
 # Minikube resources (adjust based on your server)
