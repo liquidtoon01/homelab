@@ -21,6 +21,9 @@
           tag: "unstable"
         hostname: "{{ tailscale_operator_hostname | default('ts-operator') }}"
       
+      hostNetwork: true
+      dnsPolicy: ClusterFirstWithHostNet
+      
       resources:
         limits:
           cpu: 500m
@@ -42,34 +45,6 @@
     {{ '--version ' + tailscale_operator_chart_version if tailscale_operator_chart_version else '' }}
     --wait
   changed_when: true
-  become: no
-  when:
-    - tailscale_oauth_client_id is defined
-    - tailscale_oauth_client_secret is defined
-    - tailscale_oauth_client_id | length > 0
-    - tailscale_oauth_client_secret | length > 0
-
-- name: Patch operator deployment to use host networking
-  ansible.builtin.command: >
-    kubectl patch deployment operator
-    --namespace tailscale
-    --type strategic
-    --patch '{"spec":{"template":{"spec":{"hostNetwork":true,"dnsPolicy":"ClusterFirstWithHostNet"}}}}'
-  changed_when: true
-  become: no
-  when:
-    - tailscale_oauth_client_id is defined
-    - tailscale_oauth_client_secret is defined
-    - tailscale_oauth_client_id | length > 0
-    - tailscale_oauth_client_secret | length > 0
-
-- name: Wait for operator pod to be ready
-  ansible.builtin.command: >
-    kubectl wait --for=condition=ready pod
-    --selector=app.kubernetes.io/name=tailscale-operator
-    --namespace tailscale
-    --timeout=120s
-  changed_when: false
   become: no
   when:
     - tailscale_oauth_client_id is defined
