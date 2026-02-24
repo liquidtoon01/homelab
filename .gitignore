@@ -2,7 +2,7 @@
 *.retry
 *.log
 .vault_pass
-vault.yml
+group_vars/vault.yml
 
 # Temporary files
 /tmp/

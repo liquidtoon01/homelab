@@ -15,13 +15,14 @@ kubectl_version: "latest"
 helm_version: "latest"
 
 # Tailscale configuration
-# TODO: Move to vault.yml once vault is set up
-tailscale_auth_key: ""  # Set this directly on server
+# Set actual value in group_vars/vault.yml (encrypted)
+tailscale_auth_key: "{{ vault_tailscale_auth_key | default('') }}"
 
 # Tailscale Operator configuration
-# TODO: Move to vault.yml once vault is set up
-tailscale_oauth_client_id: ""  # Set this directly on server
-tailscale_oauth_client_secret: ""  # Set this directly on server
+# Create OAuth client at: https://login.tailscale.com/admin/settings/oauth
+# Set actual values in group_vars/vault.yml (encrypted)
+tailscale_oauth_client_id: "{{ vault_tailscale_oauth_client_id | default('') }}"
+tailscale_oauth_client_secret: "{{ vault_tailscale_oauth_client_secret | default('') }}"
 tailscale_operator_hostname: "ts-operator"
 
 # Tailscale Ingress hostnames (customize as needed)
