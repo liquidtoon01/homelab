@@ -114,8 +114,9 @@
             containers:
             - name: immich-microservices
               image: ghcr.io/immich-app/immich-server:release
-              command: ["/bin/sh", "-c", "/usr/src/app/start.sh microservices"]
               env:
+              - name: IMMICH_WORKERS_INCLUDE
+                value: "microservices"
               - name: DB_HOSTNAME
                 value: "immich-postgresql"
               - name: DB_DATABASE_NAME
