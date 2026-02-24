@@ -100,7 +100,15 @@
   ansible.builtin.command: kubectl -n {{ immich_namespace }} wait --for=condition=available deployment/immich-postgresql --timeout=300s
   changed_when: false
   become: no
-  ignore_errors: yes
+
+- name: Wait for PostgreSQL service endpoint
+  ansible.builtin.shell: |
+    until kubectl -n {{ immich_namespace }} get endpoints immich-postgresql -o jsonpath='{.subsets[*].addresses[*].ip}' | grep -q .; do
+      echo "Waiting for PostgreSQL endpoint..."
+      sleep 2
+    done
+  changed_when: false
+  become: no
 
 - name: Deploy Redis for Immich
   ansible.builtin.command: >
@@ -172,6 +180,19 @@
               volumeMounts:
               - name: library
                 mountPath: /usr/src/app/upload
+              startupProbe:
+                httpGet:
+                  path: /api/server-info/ping
+                  port: 3001
+                initialDelaySeconds: 10
+                periodSeconds: 5
+                failureThreshold: 30
+              livenessProbe:
+                httpGet:
+                  path: /api/server-info/ping
+                  port: 3001
+                periodSeconds: 30
+                failureThreshold: 3
             volumes:
             - name: library
               persistentVolumeClaim:
@@ -215,6 +236,23 @@
               volumeMounts:
               - name: library
                 mountPath: /usr/src/app/upload
+              startupProbe:
+                exec:
+                  command:
+                  - sh
+                  - -c
+                  - "nc -z immich-postgresql 5432"
+                initialDelaySeconds: 10
+                periodSeconds: 5
+                failureThreshold: 30
+              livenessProbe:
+                exec:
+                  command:
+                  - sh
+                  - -c
+                  - "nc -z immich-postgresql 5432"
+                periodSeconds: 30
+                failureThreshold: 3
             volumes:
             - name: library
               persistentVolumeClaim:
