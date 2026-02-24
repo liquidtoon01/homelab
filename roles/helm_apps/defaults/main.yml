@@ -1,13 +1,5 @@
 ---
-# Storage configuration
-storage_class: "standard"
-
-# Namespace configuration
-gitea_namespace: "gitea"
-sonarr_namespace: "media"
-headscale_namespace: "headscale"
-qbittorrent_namespace: "media"
-pihole_namespace: "pihole"
+# Namespace and storage settings are defined in group_vars/all.yml
 
 # Helm chart versions (use "latest" or specific version)
 gitea_chart_version: ""
@@ -20,5 +12,7 @@ pihole_chart_version: ""
 gitea_admin_username: "gitea_admin"
 gitea_admin_password: "changeme"
 gitea_admin_email: "admin@example.com"
+gitea_secret_key: "change-this-to-a-unique-string"
 
 pihole_admin_password: "changeme"
+

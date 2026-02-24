@@ -1,3 +1,3 @@
 ---
-helm_version: "latest"
+# helm_version is defined in group_vars/all.yml
 helm_install_path: "/usr/local/bin"

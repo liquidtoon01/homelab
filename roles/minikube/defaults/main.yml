@@ -1,7 +1,3 @@
 ---
-minikube_version: "latest"
-minikube_driver: "docker"
-minikube_cpus: 2
-minikube_memory: "4096"
-minikube_disk_size: "20g"
+# minikube settings are defined in group_vars/all.yml
 minikube_install_path: "/usr/local/bin"

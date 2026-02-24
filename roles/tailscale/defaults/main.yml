@@ -1,2 +1,2 @@
 ---
-tailscale_auth_key: ""
+# Defaults are defined in group_vars/all.yml
