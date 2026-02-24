@@ -31,7 +31,7 @@
 
 - name: Deploy Sonarr using Helm
   ansible.builtin.command: >
-    helm upgrade --install sonarr pree-helm-charts/sonarr
+    helm upgrade --install sonarr gabe565/sonarr
     --namespace {{ sonarr_namespace }}
     --values /tmp/sonarr-values.yaml
     {{ '--version ' + sonarr_chart_version if sonarr_chart_version else '' }}

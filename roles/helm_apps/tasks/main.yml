@@ -4,14 +4,22 @@
   loop:
     - { name: "tailscale", url: "https://pkgs.tailscale.com/helmcharts" }
     - { name: "gitea", url: "https://dl.gitea.com/charts/" }
-    - { name: "pree-helm-charts", url: "https://pree-dicted.github.io/helm-charts/" }
-    - { name: "headscale", url: "https://github.com/gabe565/charts" }
-    - { name: "immich", url: "https://immich-app.github.io/immich-charts" }
+    - { name: "k8s-at-home", url: "https://k8s-at-home.com/charts/" }
     - { name: "gabe565", url: "https://charts.gabe565.com" }
+    - { name: "immich", url: "https://immich-app.github.io/immich-charts" }
     - { name: "mojo2600", url: "https://mojo2600.github.io/pihole-kubernetes/" }
+  register: helm_repo_add_result
   changed_when: false
   failed_when: false
   become: no
+
+- name: Display Helm repository warnings
+  ansible.builtin.debug:
+    msg: "Warning: Failed to add repository {{ item.item.name }}"
+  loop: "{{ helm_repo_add_result.results }}"
+  when: item.rc != 0
+  loop_control:
+    label: "{{ item.item.name }}"
 
 - name: Update Helm repositories
   ansible.builtin.command: helm repo update
