@@ -9,6 +9,8 @@
   ansible.builtin.copy:
     dest: /tmp/gitea-values.yaml
     content: |
+      replicaCount: 1
+      
       service:
         http:
           type: LoadBalancer
@@ -31,6 +33,7 @@
         config:
           database:
             DB_TYPE: sqlite3
+            PATH: /data/gitea/gitea.db
           session:
             PROVIDER: memory
           cache:
@@ -40,11 +43,22 @@
         enabled: true
         size: 10Gi
         storageClass: "{{ storage_class }}"
+        accessModes:
+          - ReadWriteOnce
       
       postgresql:
         enabled: false
       
+      postgresql-ha:
+        enabled: false
+      
       redis:
+        enabled: false
+      
+      redis-cluster:
+        enabled: false
+      
+      valkey:
         enabled: false
 
 - name: Deploy Gitea using Helm
@@ -54,5 +68,6 @@
     --values /tmp/gitea-values.yaml
     {{ '--version ' + gitea_chart_version if gitea_chart_version else '' }}
     --wait
+    --timeout 10m
   changed_when: true
   become: no
