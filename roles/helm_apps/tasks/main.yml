@@ -29,7 +29,7 @@
 - name: Deploy Tailscale operator
   ansible.builtin.include_tasks: tailscale-operator.yml
 
-- name: Install Rancher local-path-provisioner for storage
+- name: Configure Minikube storage provisioner
   ansible.builtin.include_tasks: storage.yml
 
 - name: Deploy Gitea
