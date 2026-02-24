@@ -120,9 +120,9 @@
               valueFrom:
                 fieldRef:
                   fieldPath: metadata.namespace
-            - name: CLIENT_ID_PATH
+            - name: CLIENT_ID_FILE
               value: /oauth/client_id
-            - name: CLIENT_SECRET_PATH
+            - name: CLIENT_SECRET_FILE
               value: /oauth/client_secret
             - name: POD_IP
               valueFrom:
