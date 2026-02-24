@@ -47,23 +47,10 @@
     - storage-provisioner
     - default-storageclass
     - metrics-server
-  changed_when: false
-  become: no
-
-- name: Check CoreDNS addon status
-  ansible.builtin.command: minikube addons list
-  register: minikube_addons
-  changed_when: false
-  become: no
-
-- name: Enable CoreDNS addon
-  ansible.builtin.command: minikube addons enable dns
-  when: "'dns: disabled' in minikube_addons.stdout or 'dns: enabled' not in minikube_addons.stdout"
-  changed_when: true
-  become: no
-
-- name: Wait for CoreDNS to be ready
-  ansible.builtin.command: kubectl -n kube-system wait --for=condition=available deployment/coredns --timeout=300s
+    - dashboard
+    - kube-dns
+    - ingress
+    - addon-manager
   changed_when: false
   become: no
 
