@@ -112,9 +112,7 @@
             image: tailscale/k8s-operator:unstable
             env:
             - name: KUBERNETES_SERVICE_HOST
-              valueFrom:
-                fieldRef:
-                  fieldPath: status.hostIP
+              value: "127.0.0.1"
             - name: KUBERNETES_SERVICE_PORT
               value: "8443"
             - name: OPERATOR_HOSTNAME
