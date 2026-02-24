@@ -50,6 +50,27 @@
   changed_when: false
   become: no
 
+- name: Check CoreDNS status
+  ansible.builtin.command: kubectl get deployment coredns -n kube-system
+  register: coredns_status
+  changed_when: false
+  failed_when: false
+  become: no
+
+- name: Deploy CoreDNS if missing
+  ansible.builtin.shell: |
+    kubectl apply -f https://raw.githubusercontent.com/kubernetes/minikube/master/deploy/addons/dns/coredns-configmap.yaml
+    kubectl apply -f https://raw.githubusercontent.com/kubernetes/minikube/master/deploy/addons/dns/coredns-deployment.yaml
+    kubectl apply -f https://raw.githubusercontent.com/kubernetes/minikube/master/deploy/addons/dns/coredns-service.yaml
+  when: coredns_status.rc != 0
+  changed_when: true
+  become: no
+
+- name: Wait for CoreDNS to be ready
+  ansible.builtin.command: kubectl -n kube-system wait --for=condition=available deployment/coredns --timeout=300s
+  changed_when: false
+  become: no
+
 - name: Wait for Minikube to be ready
   ansible.builtin.command: kubectl get nodes
   register: kubectl_get_nodes
