@@ -48,7 +48,7 @@
     - default-storageclass
     - metrics-server
     - dashboard
-    - kube-dns
+    - ingress-dns
     - ingress
     - addon-manager
   changed_when: false
