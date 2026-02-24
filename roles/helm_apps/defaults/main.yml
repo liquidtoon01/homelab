@@ -13,6 +13,7 @@ pihole_namespace: "pihole"
 tailscale_oauth_client_id: ""
 tailscale_oauth_client_secret: ""
 tailscale_operator_hostname: "ts-operator"
+tailscale_operator_chart_version: ""
 
 # Tailscale Ingress hostnames (override in group_vars/all.yml)
 tailscale_gitea_hostname: "gitea"
@@ -32,9 +33,9 @@ pihole_chart_version: ""
 
 # Application configurations
 gitea_admin_username: "gitea_admin"
-gitea_admin_password: "changeme"
+gitea_admin_password: "{{ vault_gitea_admin_password | default('changeme') }}"
 gitea_admin_email: "admin@example.com"
-gitea_secret_key: "change-this-to-a-unique-string"
+gitea_secret_key: "{{ vault_gitea_secret_key | default('change-this-to-a-unique-string') }}"
 
-pihole_admin_password: "changeme"
+pihole_admin_password: "{{ vault_pihole_admin_password | default('changeme') }}"
 

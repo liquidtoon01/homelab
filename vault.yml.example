@@ -1,0 +1,20 @@
+---
+# Encrypted secrets file - Template
+# 
+# To use:
+# 1. Copy this file: cp vault.yml.example vault.yml
+# 2. Edit with your values: ansible-vault create vault.yml
+#    Or encrypt existing: ansible-vault encrypt vault.yml
+# 3. Edit encrypted file: ansible-vault edit vault.yml
+
+# Tailscale authentication
+vault_tailscale_auth_key: "tskey-auth-xxxxx-REPLACE-WITH-YOUR-KEY"
+
+# Tailscale Operator OAuth
+vault_tailscale_oauth_client_id: "kXXXXXXXXXXXXXXXX"
+vault_tailscale_oauth_client_secret: "tskey-client-XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+
+# Application passwords
+vault_gitea_admin_password: "strong-password-here"
+vault_gitea_secret_key: "generate-a-long-random-string-here"
+vault_pihole_admin_password: "strong-password-here"
