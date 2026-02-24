@@ -8,6 +8,7 @@ sonarr_namespace: "media"
 headscale_namespace: "headscale"
 immich_namespace: "immich"
 qbittorrent_namespace: "media"
+pihole_namespace: "pihole"
 
 # Helm chart versions (use "latest" or specific version)
 gitea_chart_version: ""
