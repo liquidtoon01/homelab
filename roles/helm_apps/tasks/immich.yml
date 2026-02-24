@@ -5,19 +5,102 @@
   changed_when: false
   become: no
 
+- name: Create PostgreSQL with pgvector manifest
+  ansible.builtin.copy:
+    dest: /tmp/immich-postgresql.yaml
+    content: |
+      ---
+      apiVersion: v1
+      kind: PersistentVolumeClaim
+      metadata:
+        name: immich-postgresql
+        namespace: {{ immich_namespace }}
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        storageClassName: {{ storage_class }}
+        resources:
+          requests:
+            storage: 10Gi
+      ---
+      apiVersion: v1
+      kind: ConfigMap
+      metadata:
+        name: immich-postgresql-init
+        namespace: {{ immich_namespace }}
+      data:
+        init.sql: |
+          CREATE EXTENSION IF NOT EXISTS vector;
+      ---
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: immich-postgresql
+        namespace: {{ immich_namespace }}
+        labels:
+          app: immich-postgresql
+      spec:
+        replicas: 1
+        selector:
+          matchLabels:
+            app: immich-postgresql
+        template:
+          metadata:
+            labels:
+              app: immich-postgresql
+          spec:
+            containers:
+            - name: postgresql
+              image: tensorchord/pgvecto-rs:pg16-v0.2.0
+              ports:
+              - containerPort: 5432
+                name: postgresql
+              env:
+              - name: POSTGRES_USER
+                value: "immich"
+              - name: POSTGRES_PASSWORD
+                value: "immich"
+              - name: POSTGRES_DB
+                value: "immich"
+              - name: PGDATA
+                value: "/var/lib/postgresql/data/pgdata"
+              volumeMounts:
+              - name: data
+                mountPath: /var/lib/postgresql/data
+              - name: init
+                mountPath: /docker-entrypoint-initdb.d
+            volumes:
+            - name: data
+              persistentVolumeClaim:
+                claimName: immich-postgresql
+            - name: init
+              configMap:
+                name: immich-postgresql-init
+      ---
+      apiVersion: v1
+      kind: Service
+      metadata:
+        name: immich-postgresql
+        namespace: {{ immich_namespace }}
+      spec:
+        type: ClusterIP
+        selector:
+          app: immich-postgresql
+        ports:
+        - name: postgresql
+          port: 5432
+          targetPort: 5432
+
 - name: Deploy PostgreSQL for Immich
-  ansible.builtin.command: >
-    helm upgrade --install immich-postgresql bitnami/postgresql
-    --namespace {{ immich_namespace }}
-    --set auth.username=immich
-    --set auth.password=immich
-    --set auth.database=immich
-    --set primary.persistence.enabled=true
-    --set primary.persistence.size=10Gi
-    --set primary.persistence.storageClass={{ storage_class }}
-    --wait
+  ansible.builtin.command: kubectl apply -f /tmp/immich-postgresql.yaml
   changed_when: true
   become: no
+
+- name: Wait for PostgreSQL to be ready
+  ansible.builtin.command: kubectl -n {{ immich_namespace }} wait --for=condition=available deployment/immich-postgresql --timeout=300s
+  changed_when: false
+  become: no
+  ignore_errors: yes
 
 - name: Deploy Redis for Immich
   ansible.builtin.command: >
