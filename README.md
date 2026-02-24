@@ -13,7 +13,6 @@ This setup installs and configures:
 - **Scheduled apt updates** - Automated system updates
 
 And deploys the following applications via Helm:
-- **CSI Storage Driver** - Persistent storage for Kubernetes
 - **Gitea** - Self-hosted Git service (accessible via Tailscale at `http://gitea`)
 - **Sonarr** - PVR for TV shows (accessible via Tailscale at `http://sonarr`)
 - **Headscale** - Self-hosted Tailscale control server (accessible via Tailscale at `http://headscale`)
