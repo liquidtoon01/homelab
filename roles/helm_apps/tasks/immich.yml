@@ -12,14 +12,28 @@
       image:
         tag: release
       
+      env:
+        DB_HOSTNAME: immich-postgresql
+        DB_DATABASE_NAME: immich
+        DB_USERNAME: immich
+        DB_PASSWORD: immich
+        REDIS_HOSTNAME: immich-redis-master
+      
       immich:
         persistence:
           library:
+            enabled: true
             existingClaim: ""
             size: 100Gi
             storageClass: "{{ storage_class }}"
+            accessMode: ReadWriteOnce
       
       server:
+        enabled: true
+        persistence:
+          library:
+            enabled: true
+            accessMode: ReadWriteOnce
         service:
           type: LoadBalancer
           port: 3001
@@ -27,8 +41,26 @@
             tailscale.com/expose: "true"
             tailscale.com/hostname: "{{ tailscale_immich_hostname | default('immich') }}"
       
+      microservices:
+        enabled: true
+        persistence:
+          library:
+            enabled: true
+            accessMode: ReadWriteOnce
+      
+      machine-learning:
+        enabled: true
+        persistence:
+          cache:
+            enabled: true
+            accessMode: ReadWriteOnce
+      
       postgresql:
         enabled: true
+        auth:
+          username: immich
+          password: immich
+          database: immich
         primary:
           persistence:
             enabled: true
@@ -37,6 +69,9 @@
       
       redis:
         enabled: true
+        architecture: standalone
+        auth:
+          enabled: false
         master:
           persistence:
             enabled: true
