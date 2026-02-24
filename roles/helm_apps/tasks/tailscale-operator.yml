@@ -104,7 +104,8 @@
           labels:
             app: tailscale-operator
         spec:
-          dnsPolicy: Default
+          hostNetwork: true
+          dnsPolicy: ClusterFirstWithHostNet
           serviceAccountName: operator
           containers:
           - name: operator
