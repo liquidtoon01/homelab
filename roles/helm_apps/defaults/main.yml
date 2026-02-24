@@ -1,6 +1,6 @@
 ---
 # Storage configuration
-storage_class: "local-path"
+storage_class: "standard"
 
 # Namespace configuration
 gitea_namespace: "gitea"

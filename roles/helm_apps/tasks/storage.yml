@@ -1,24 +1,20 @@
 ---
-- name: Check if local-path-provisioner is installed
-  ansible.builtin.command: kubectl get storageclass local-path
-  register: local_path_check
+- name: Verify Minikube storage provisioner is available
+  ansible.builtin.command: kubectl get storageclass standard
+  register: storage_check
   changed_when: false
   failed_when: false
   become: no
 
-- name: Install local-path-provisioner
-  ansible.builtin.shell: |
-    kubectl apply -f https://raw.githubusercontent.com/rancher/local-path-provisioner/master/deploy/local-path-storage.yaml
-  when: local_path_check.rc != 0
+- name: Enable Minikube storage addon if not present
+  ansible.builtin.command: minikube addons enable storage-provisioner
+  when: storage_check.rc != 0
   become: no
-
-- name: Set local-path as default storage class
-  ansible.builtin.command: |
-    kubectl patch storageclass local-path -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'
-  when: local_path_check.rc != 0
-  become: no
-
-- name: Wait for storage provisioner to be ready
-  ansible.builtin.command: kubectl -n local-path-storage wait --for=condition=ready pod -l app=local-path-provisioner --timeout=300s
   changed_when: false
+
+- name: Set standard as default storage class
+  ansible.builtin.command: kubectl patch storageclass standard -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'
+  when: storage_check.rc == 0
+  changed_when: false
+  failed_when: false
   become: no
