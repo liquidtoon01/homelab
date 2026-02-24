@@ -5,86 +5,206 @@
   changed_when: false
   become: no
 
-- name: Create Immich values file
-  ansible.builtin.copy:
-    dest: /tmp/immich-values.yaml
-    content: |
-      image:
-        tag: release
-      
-      env:
-        DB_HOSTNAME: immich-postgresql
-        DB_DATABASE_NAME: immich
-        DB_USERNAME: immich
-        DB_PASSWORD: immich
-        REDIS_HOSTNAME: immich-redis-master
-      
-      immich:
-        persistence:
-          library:
-            enabled: true
-            existingClaim: ""
-            size: 100Gi
-            storageClass: "{{ storage_class }}"
-            accessMode: ReadWriteOnce
-      
-      server:
-        enabled: true
-        persistence:
-          library:
-            enabled: true
-            accessMode: ReadWriteOnce
-        service:
-          type: LoadBalancer
-          port: 3001
-          annotations:
-            tailscale.com/expose: "true"
-            tailscale.com/hostname: "{{ tailscale_immich_hostname | default('immich') }}"
-      
-      microservices:
-        enabled: true
-        persistence:
-          library:
-            enabled: true
-            accessMode: ReadWriteOnce
-      
-      machine-learning:
-        enabled: true
-        persistence:
-          cache:
-            enabled: true
-            accessMode: ReadWriteOnce
-      
-      postgresql:
-        enabled: true
-        auth:
-          username: immich
-          password: immich
-          database: immich
-        primary:
-          persistence:
-            enabled: true
-            size: 10Gi
-            storageClass: "{{ storage_class }}"
-      
-      redis:
-        enabled: true
-        architecture: standalone
-        auth:
-          enabled: false
-        master:
-          persistence:
-            enabled: true
-            size: 1Gi
-            storageClass: "{{ storage_class }}"
-
-- name: Deploy Immich using Helm
+- name: Deploy PostgreSQL for Immich
   ansible.builtin.command: >
-    helm upgrade --install immich immich/immich
+    helm upgrade --install immich-postgresql bitnami/postgresql
     --namespace {{ immich_namespace }}
-    --values /tmp/immich-values.yaml
-    {{ '--version ' + immich_chart_version if immich_chart_version else '' }}
+    --set auth.username=immich
+    --set auth.password=immich
+    --set auth.database=immich
+    --set primary.persistence.enabled=true
+    --set primary.persistence.size=10Gi
+    --set primary.persistence.storageClass={{ storage_class }}
     --wait
-    --timeout 10m
   changed_when: true
   become: no
+
+- name: Deploy Redis for Immich
+  ansible.builtin.command: >
+    helm upgrade --install immich-redis bitnami/redis
+    --namespace {{ immich_namespace }}
+    --set architecture=standalone
+    --set auth.enabled=false
+    --set master.persistence.enabled=true
+    --set master.persistence.size=1Gi
+    --set master.persistence.storageClass={{ storage_class }}
+    --wait
+  changed_when: true
+  become: no
+
+- name: Create Immich deployment manifest
+  ansible.builtin.copy:
+    dest: /tmp/immich-manifest.yaml
+    content: |
+      ---
+      apiVersion: v1
+      kind: PersistentVolumeClaim
+      metadata:
+        name: immich-library
+        namespace: {{ immich_namespace }}
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        storageClassName: {{ storage_class }}
+        resources:
+          requests:
+            storage: 100Gi
+      ---
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: immich-server
+        namespace: {{ immich_namespace }}
+        labels:
+          app: immich-server
+      spec:
+        replicas: 1
+        selector:
+          matchLabels:
+            app: immich-server
+        template:
+          metadata:
+            labels:
+              app: immich-server
+          spec:
+            containers:
+            - name: immich-server
+              image: ghcr.io/immich-app/immich-server:release
+              ports:
+              - containerPort: 3001
+                name: http
+              env:
+              - name: DB_HOSTNAME
+                value: "immich-postgresql"
+              - name: DB_DATABASE_NAME
+                value: "immich"
+              - name: DB_USERNAME
+                value: "immich"
+              - name: DB_PASSWORD
+                value: "immich"
+              - name: REDIS_HOSTNAME
+                value: "immich-redis-master"
+              - name: UPLOAD_LOCATION
+                value: "/usr/src/app/upload"
+              volumeMounts:
+              - name: library
+                mountPath: /usr/src/app/upload
+            volumes:
+            - name: library
+              persistentVolumeClaim:
+                claimName: immich-library
+      ---
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: immich-microservices
+        namespace: {{ immich_namespace }}
+        labels:
+          app: immich-microservices
+      spec:
+        replicas: 1
+        selector:
+          matchLabels:
+            app: immich-microservices
+        template:
+          metadata:
+            labels:
+              app: immich-microservices
+          spec:
+            containers:
+            - name: immich-microservices
+              image: ghcr.io/immich-app/immich-server:release
+              command: ["/bin/sh"]
+              args: ["./start-microservices.sh"]
+              env:
+              - name: DB_HOSTNAME
+                value: "immich-postgresql"
+              - name: DB_DATABASE_NAME
+                value: "immich"
+              - name: DB_USERNAME
+                value: "immich"
+              - name: DB_PASSWORD
+                value: "immich"
+              - name: REDIS_HOSTNAME
+                value: "immich-redis-master"
+              - name: UPLOAD_LOCATION
+                value: "/usr/src/app/upload"
+              volumeMounts:
+              - name: library
+                mountPath: /usr/src/app/upload
+            volumes:
+            - name: library
+              persistentVolumeClaim:
+                claimName: immich-library
+      ---
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: immich-machine-learning
+        namespace: {{ immich_namespace }}
+        labels:
+          app: immich-machine-learning
+      spec:
+        replicas: 1
+        selector:
+          matchLabels:
+            app: immich-machine-learning
+        template:
+          metadata:
+            labels:
+              app: immich-machine-learning
+          spec:
+            containers:
+            - name: immich-machine-learning
+              image: ghcr.io/immich-app/immich-machine-learning:release
+              ports:
+              - containerPort: 3003
+                name: http
+              volumeMounts:
+              - name: cache
+                mountPath: /cache
+            volumes:
+            - name: cache
+              emptyDir: {}
+      ---
+      apiVersion: v1
+      kind: Service
+      metadata:
+        name: immich-server
+        namespace: {{ immich_namespace }}
+        annotations:
+          tailscale.com/expose: "true"
+          tailscale.com/hostname: "{{ tailscale_immich_hostname | default('immich') }}"
+      spec:
+        type: LoadBalancer
+        selector:
+          app: immich-server
+        ports:
+        - name: http
+          port: 3001
+          targetPort: 3001
+      ---
+      apiVersion: v1
+      kind: Service
+      metadata:
+        name: immich-machine-learning
+        namespace: {{ immich_namespace }}
+      spec:
+        type: ClusterIP
+        selector:
+          app: immich-machine-learning
+        ports:
+        - name: http
+          port: 3003
+          targetPort: 3003
+
+- name: Deploy Immich using kubectl
+  ansible.builtin.command: kubectl apply -f /tmp/immich-manifest.yaml
+  changed_when: true
+  become: no
+
+- name: Wait for Immich server to be ready
+  ansible.builtin.command: kubectl -n {{ immich_namespace }} wait --for=condition=available deployment/immich-server --timeout=600s
+  changed_when: false
+  become: no
+  failed_when: false
