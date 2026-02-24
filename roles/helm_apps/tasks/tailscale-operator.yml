@@ -5,27 +5,14 @@
   changed_when: false
   become: no
 
-- name: Debug Tailscale OAuth credentials status
-  ansible.builtin.debug:
-    msg: 
-      - "OAuth Client ID defined: {{ tailscale_oauth_client_id is defined }}"
-      - "OAuth Client ID length: {{ tailscale_oauth_client_id | default('') | length }}"
-      - "OAuth Client Secret defined: {{ tailscale_oauth_client_secret is defined }}"
-      - "OAuth Client Secret length: {{ tailscale_oauth_client_secret | default('') | length }}"
-
-- name: Create Tailscale OAuth client secret
-  ansible.builtin.command: >
-    kubectl create secret generic operator-oauth
-    --from-literal=client_id={{ tailscale_oauth_client_id }}
-    --from-literal=client_secret={{ tailscale_oauth_client_secret }}
-    --namespace tailscale
-  when: 
+- name: Remove existing operator-oauth secret (if not managed by Helm)
+  ansible.builtin.command: kubectl delete secret operator-oauth -n tailscale --ignore-not-found
+  when:
     - tailscale_oauth_client_id is defined
     - tailscale_oauth_client_secret is defined
     - tailscale_oauth_client_id | length > 0
     - tailscale_oauth_client_secret | length > 0
-  failed_when: false
-  changed_when: false
+  changed_when: true
   become: no
 
 - name: Create Tailscale operator values file
