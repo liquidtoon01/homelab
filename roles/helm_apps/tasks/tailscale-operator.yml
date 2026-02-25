@@ -96,7 +96,10 @@
     rules:
     - apiGroups: [""]
       resources: ["secrets", "services", "serviceaccounts"]
-      verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+      verbs: ["get", "list", "watch", "create", "update", "patch", "delete", "deletecollection"]
+    - apiGroups: [""]
+      resources: ["services/status"]
+      verbs: ["update", "patch"]
     - apiGroups: ["apps"]
       resources: ["deployments", "statefulsets"]
       verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
