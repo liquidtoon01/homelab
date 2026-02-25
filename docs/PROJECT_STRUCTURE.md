@@ -7,8 +7,7 @@ This document describes the complete structure of the Kimsufi Infrastructure as 
 ```
 kimsufi/
 ├── README.md                           # Main project documentation
-├── GETTING_STARTED.md                  # Complete step-by-step setup guide
-├── QUICKSTART.md                       # Quick start guide for immediate use
+├── GETTING_STARTED.md                  # Setup and reference guide
 ├── CHANGELOG.md                        # Version history and changes
 ├── REQUIREMENTS.md                     # System and software requirements
 ├── Makefile                            # Convenience commands for common tasks
@@ -106,8 +105,7 @@ kimsufi/
 ### Root Directory Files
 
 - **README.md**: Main project documentation with overview, quick start, and project structure
-- **GETTING_STARTED.md**: Complete step-by-step guide from cloning to deployment
-- **QUICKSTART.md**: Condensed quick reference for getting started immediately
+- **GETTING_STARTED.md**: Setup and reference guide from cloning to deployment
 - **CHANGELOG.md**: Version history and planned future enhancements
 - **REQUIREMENTS.md**: Detailed system and software requirements
 - **Makefile**: Common commands wrapped for convenience (`make install`, `make status`, etc.)

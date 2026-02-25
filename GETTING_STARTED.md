@@ -1,165 +1,133 @@
 # Getting Started
 
-This guide will help you get this infrastructure up and running from scratch.
+Complete guide to set up and manage your homelab infrastructure.
+
+## Quick Start
+
+For a fresh Ubuntu 24.04 server:
+
+```bash
+# 1. Clone the repository
+sudo apt-get update && sudo apt-get install -y git
+git clone https://github.com/YOUR_USERNAME/homelab.git
+cd homelab
+
+# 2. Run bootstrap (installs Ansible, configures SSH)
+sudo bash bootstrap.sh
+
+# 3. Configure Tailscale OAuth (required for LoadBalancer services)
+# Get OAuth credentials from: https://login.tailscale.com/admin/settings/oauth
+nano group_vars/all.yml
+# Set: tailscale_oauth_client_id: "your-client-id"
+# Set: tailscale_oauth_client_secret: "your-client-secret"
+
+# 4. Deploy everything
+ansible-playbook -i inventory/hosts.yml playbooks/site.yml
+```
+
+Installation takes 30-50 minutes.
 
 ## Prerequisites
 
-Before you begin, ensure you have:
-- A fresh Ubuntu 24.04 LTS server (bare-metal or VM)
+- Ubuntu 24.04 LTS server (bare-metal or VM)
 - Root or sudo access
-- SSH access to the server
+- SSH access
 - Internet connection
 
-## Setup Process Overview
+## Detailed Setup Steps
 
-1. **Clone Repository** - Get the code onto your server
-2. **Run Bootstrap** - Install Ansible and configure SSH
-3. **Configure Variables** - Set your preferences
-4. **Deploy Infrastructure** - Install Kubernetes components
-5. **Deploy Applications** - Install all Helm applications
-
----
-
-## Step-by-Step Guide
-
-### 1. Access Your Server
-
-Connect to your Ubuntu 24.04 server:
+### 1. Clone Repository
 
 ```bash
 ssh user@your-server-ip
+sudo apt-get update && sudo apt-get install -y git
+git clone https://github.com/YOUR_USERNAME/homelab.git
+cd homelab
 ```
 
-### 2. Clone This Repository
 
-Install Git and clone the repository:
+### 2. Run Bootstrap
 
-```bash
-# Update package cache
-sudo apt-get update
-
-# Install Git
-sudo apt-get install -y git
-
-# Clone the repository
-git clone https://github.com/YOUR_USERNAME/kimsufi.git
-
-# Change to the repository directory
-cd kimsufi
-```
-
-**Note**: Replace `YOUR_USERNAME/kimsufi` with your actual repository location.
-
-### 3. Run the Bootstrap Script
-
-The bootstrap script will:
-- Install Git (if not already present)
-- Install snapd and msedit
-- Install Ansible
-- Configure SSH security hardening
+The bootstrap script installs Ansible and configures SSH security:
 
 ```bash
 sudo bash bootstrap.sh
 ```
 
-**What happens:**
-- Git is installed
-- Snapd is installed
-- msedit (text editor) is installed via Snap
-- Ansible PPA is added
-- Ansible is installed
-- SSH is hardened (password auth still enabled by default)
-- SSH config is backed up
+This installs Git, snapd, msedit, Ansible, and hardens SSH (public key auth enabled, password auth still allowed, max 3 login attempts). Takes 2-5 minutes.
 
-This takes approximately 2-5 minutes.
+**Optional SSH Hardening:**
 
-### 4. Review and Configure Variables
+After setting up SSH keys, disable password authentication:
 
-**Key settings to review in Ansible Vault:**
+```bash
+sudo nano /etc/ssh/sshd_config
+# Uncomment: PasswordAuthentication no
+# Uncomment: PermitRootLogin no
+sudo systemctl restart sshd
+```
+
+**Warning:** Only do this after confirming SSH key login works.
+
+### 3. Configure Variables
+
+Edit `group_vars/all.yml`:
 
 ```yaml
-# Minikube resources (adjust based on your server)
+# Minikube resources
 minikube_cpus: 2
 minikube_memory: "4096"
 minikube_disk_size: "20g"
 
-# Tailscale (optional but recommended)
-tailscale_auth_key: ""  # Get from https://login.tailscale.com/admin/settings/keys
-
-# Tailscale Operator (REQUIRED for Tailscale ingress)
+# Tailscale Operator (REQUIRED for LoadBalancer services)
 # Create OAuth client at: https://login.tailscale.com/admin/settings/oauth
-tailscale_oauth_client_id: ""
-tailscale_oauth_client_secret: ""
+tailscale_oauth_client_id: "your-client-id"
+tailscale_oauth_client_secret: "your-client-secret"
 
-# Application passwords (CHANGE THESE!)
+# Optional: Tailscale auth key
+tailscale_auth_key: ""
+
+# Application passwords (CHANGE THESE)
 pihole_admin_password: "changeme"
 ```
 
-**Important: Tailscale Operator Setup**
+**Tailscale OAuth Setup:**
 
-To enable secure Tailscale access to all applications:
+1. Visit [Tailscale OAuth Clients](https://login.tailscale.com/admin/settings/oauth)
+2. Generate OAuth Client named "Kubernetes Operator"
+3. Copy Client ID and Secret to `group_vars/all.yml`
 
-1. Go to [Tailscale OAuth Clients](https://login.tailscale.com/admin/settings/oauth)
-2. Click **Generate OAuth Client**
-3. Name it "Kubernetes Operator"
-4. Copy the **Client ID** and **Client Secret**
-5. Paste them into `group_vars/all.yml`
+See [Tailscale Operator Setup](docs/tailscale-operator.md) for details.
 
-See [Tailscale Operator Setup](docs/tailscale-operator.md) for detailed instructions.
+### 4. Configure Inventory
 
-### 5. Configure Inventory
+Local installation (default): No changes needed.
 
-For local installation (running on the server itself):
+Remote installation: Edit `inventory/hosts.yml`:
 
-```bash
-# inventory/hosts.yml is already configured for localhost
-# No changes needed
-```
-
-For remote installation (managing from another machine):
-
-```bash
-nano inventory/hosts.yml
-```
-
-Change to:
 ```yaml
 all:
   hosts:
-    kimsufi:
+    homelab:
       ansible_host: your.server.ip
       ansible_user: your_user
       ansible_ssh_private_key_file: ~/.ssh/id_rsa
 ```
 
-### 6. Deploy Everything
+### 5. Deploy
 
-Run the main playbook:
+Run the main playbook (30-50 minutes):
 
 ```bash
 ansible-playbook -i inventory/hosts.yml playbooks/site.yml
 ```
 
-This will:
-- Install Docker, kubectl, Helm, Minikube
-- Set up Tailscale VPN
-- Configure scheduled system updates
-- Deploy all Helm applications
+Installs:
+- Infrastructure: Docker, kubectl, Helm, Minikube, Tailscale, Tailscale Operator
+- Storage: local-path-provisioner
+- Applications: Gogs, Sonarr, qBittorrent, Pi-hole
 
-**Expected time:** 30-50 minutes
-
-**What's being installed:**
-- Infrastructure components (Docker, Minikube, kubectl, Helm, Tailscale)
-- Tailscale Operator (for secure ingress)
-- Storage provisioner (local-path)
-- Gogs (Git server)
-- Sonarr (TV shows)
-- qBittorrent (Downloads)
-- Pi-hole (DNS/Ad blocking)
-
-### 7. Verify Installation
-
-Check that everything is running:
+### 6. Verify Installation
 
 ```bash
 # Check Minikube
@@ -169,351 +137,313 @@ minikube status
 kubectl get nodes
 kubectl get pods --all-namespaces
 
-# Check Helm
-helm list --all-namespaces
-
-# Check Tailscale
-tailscale status
-```
-
-Or use the convenience command:
-
-```bash
+# Or use convenience command
 make status
 ```
 
----
+## What Gets Installed
 
-## Accessing Your Applications
+**Infrastructure:**
+- Docker
+- kubectl
+- Helm
+- Minikube (Kubernetes cluster)
+- Tailscale (VPN)
+- Tailscale Operator (LoadBalancer ingress)
+- Scheduled system updates
 
-### Primary Access Method: Tailscale
+**Applications:**
+- Gogs (Git server) - http://gogs
+- Sonarr (TV shows) - http://sonarr:8989
+- qBittorrent (Downloads) - http://qbittorrent:8080
+- Pi-hole (DNS/Ad blocker) - http://pihole
 
-Once the Tailscale operator is configured and deployed, all applications are accessible via Tailscale hostnames:
+## Accessing Applications
 
-| Application | Tailscale URL | Description |
-|-------------|---------------|-------------|
-| Gogs | `http://gogs` | Git web interface |
-| Gogs SSH | `ssh://gogs-ssh` | Git SSH access |
-| Sonarr | `http://sonarr:8989` | TV show manager |
-| qBittorrent | `http://qbittorrent:8080` | BitTorrent client |
-| Pi-hole | `http://pihole` | Ad blocker web UI |
+### Via Tailscale (Recommended)
 
-**Note:** You must be connected to your Tailnet (via Tailscale client on your device) to access these URLs.
+Connect to your Tailnet, then access:
+- Gogs: `http://gogs`
+- Sonarr: `http://sonarr:8989`
+- qBittorrent: `http://qbittorrent:8080`
+- Pi-hole: `http://pihole`
 
-See [Tailscale Operator Setup](docs/tailscale-operator.md) for detailed configuration.
-
-### Fallback Access Method: NodePort/Minikube Service
-
-If you haven't configured Tailscale operator yet, or need direct access:
+### Via NodePort (Fallback)
 
 ```bash
-# List all services with access URLs
+# List all services
 minikube service list
 
-# Or use the convenience command
+# Or use convenience command
 make services
-```
 
-### Access Individual Services (Fallback)
-
-```bash
-# Open Gogs in browser
+# Open specific service
 minikube service gogs-http -n git
-
-# Open Pi-hole
-minikube service pihole-web -n pihole
 ```
 
-### Default Credentials
+## Default Credentials
 
-**Gogs:**
-- Username: Set during first run
-- Password: Set during first run
+**Gogs:** Set during first run
 
 **qBittorrent:**
 - Username: `admin`
-- Password: `adminadmin` (CHANGE THIS!)
+- Password: `adminadmin` (CHANGE THIS)
 
 **Pi-hole:**
-- Password: `changeme` (CHANGE THIS!)
+- Password: `changeme` (CHANGE THIS)
 
----
+## Common Commands
 
-## Next Steps
+### Make Shortcuts
 
-### 1. Secure Your Installation
-
-**Change all default passwords:**
-```yaml
-# Edit group_vars/all.yml
-pihole_admin_password: "strong-password-here"
-
-# Re-run applications playbook
-ansible-playbook -i inventory/hosts.yml playbooks/applications.yml
-```
-
-**Harden SSH (optional but recommended):**
-
-After setting up SSH keys:
 ```bash
-sudo nano /etc/ssh/sshd_config
-
-# Uncomment these lines:
-# PermitRootLogin no
-# PasswordAuthentication no
-
-sudo systemctl restart sshd
+make status          # Check everything
+make services        # View service URLs
+make check          # Check for issues
+make logs-gogs      # View Gogs logs
+make logs-sonarr    # View Sonarr logs
 ```
 
-See [SSH Security Guide](docs/ssh-security.md) for details.
+### Kubectl Commands
 
-### 2. Set Up Tailscale
+```bash
+# View all pods
+kubectl get pods --all-namespaces
 
-If you want secure remote access:
+# View specific namespace
+kubectl get pods -n git
 
-1. Get auth key from https://login.tailscale.com/admin/settings/keys
-2. Add to `group_vars/all.yml`:
-   ```yaml
-   tailscale_auth_key: "tskey-auth-xxxxx"
-   ```
-3. Re-run infrastructure:
-   ```bash
-   ansible-playbook -i inventory/hosts.yml playbooks/infrastructure.yml --tags tailscale
-   ```
+# View logs
+kubectl logs -n <namespace> <pod-name> -f
 
-### 3. Configure Pi-hole as DNS
+# Describe pod
+kubectl describe pod -n <namespace> <pod-name>
 
-To use Pi-hole for ad-blocking:
+# Shell into pod
+kubectl exec -it -n <namespace> <pod-name> -- /bin/sh
 
-**Option 1: Router-level (recommended)**
-1. Access your router admin panel
-2. Set DHCP DNS server to your server's IP
-3. All devices will use Pi-hole
+# Check storage
+kubectl get pvc --all-namespaces
 
-**Option 2: Per-device**
-1. Get Pi-hole service URL: `minikube service pihole-dns -n pihole --url`
-2. Set device DNS to this IP
+# Restart deployment
+kubectl rollout restart deployment -n <namespace> <deployment-name>
+```
 
-See [Applications Guide](docs/applications.md#pi-hole) for details.
+### Minikube Commands
 
-### 4. Set Up Backups
+```bash
+# Stop/Start
+minikube stop
+minikube start
 
-Important data to backup:
-- Gogs repositories
-- Pi-hole configuration
+# Get IP
+minikube ip
 
-See [Applications Guide](docs/applications.md) for backup procedures.
+# SSH into cluster
+minikube ssh
+```
 
----
+### Helm Commands
+
+```bash
+# Update repositories
+helm repo update
+
+# List releases
+helm list --all-namespaces
+
+# Upgrade application
+helm upgrade -n <namespace> <release-name> <repo>/<chart>
+```
 
 ## Common Tasks
 
 ### View Logs
 
 ```bash
-# Use make shortcuts
-make logs-gogs
-make logs-pihole
-
-# Or directly
-kubectl logs -n git -l app=gogs --tail=100
+kubectl logs -n git -l app=gogs --tail=100 -f
+kubectl logs -n media -l app=sonarr --tail=100 -f
 ```
 
-### Restart an Application
+### Restart Application
 
 ```bash
-# Delete the pod (it will be recreated)
+# Delete pod (auto-recreates)
 kubectl delete pod -n <namespace> <pod-name>
 
-# Or restart the deployment
+# Or restart deployment
 kubectl rollout restart deployment -n <namespace> <deployment-name>
 ```
 
-### Update an Application
+### Update Application
 
 ```bash
-# Update Helm repos
 helm repo update
-
-# Upgrade specific app
 helm upgrade -n git gogs keyporttech/gogs
-
-# Or upgrade all
-helm list --all-namespaces | awk 'NR>1 {print $1, $2}' | while read name ns; do
-  helm upgrade -n $ns $name $(helm get values -n $ns $name -o yaml)
-done
+helm upgrade -n media sonarr pree/sonarr
+helm upgrade -n media qbittorrent gabe565/qbittorrent
 ```
 
-### Stop/Start Everything
+### Remote kubectl Access
+
+Set up SSH tunnel to manage cluster remotely:
 
 ```bash
-# Stop Minikube
-minikube stop
-
-# Start Minikube
-minikube start
-
-# Check status
-minikube status
-```
-
-### Remote kubectl Access via SSH Tunnel
-
-You can manage your Kubernetes cluster from your local machine by setting up an SSH tunnel:
-
-**1. On your server, get the Minikube IP and port:**
-
-```bash
+# On server, get Kubernetes API endpoint
 minikube kubectl -- config view --minify --output jsonpath='{.clusters[0].cluster.server}'
-```
 
-This will show something like `https://192.168.49.2:8443`
-
-**2. On your local machine, create an SSH tunnel:**
-
-```bash
-# Forward the Kubernetes API port through SSH
+# On local machine, create SSH tunnel
 ssh -L 8443:$(minikube ip):8443 user@your-server-ip -N
 
-# Or run in background
-ssh -fNL 8443:$(minikube ip):8443 user@your-server-ip
-```
+# Copy kubeconfig from server
+cat ~/.kube/config  # Run on server
 
-**3. Copy the kubeconfig from the server:**
+# Edit local ~/.kube/config
+# Change server URL to: https://localhost:8443
+# Add: insecure-skip-tls-verify: true
 
-```bash
-# On the server
-cat ~/.kube/config
-```
-
-Copy this content to your local `~/.kube/config` (or a separate file).
-
-**4. Update the local kubeconfig to use the tunnel:**
-
-Edit your local `~/.kube/config` and change the server URL:
-
-```yaml
-server: https://localhost:8443
-```
-
-Also, add this to skip certificate verification (development only):
-
-```yaml
-clusters:
-- cluster:
-    insecure-skip-tls-verify: true
-    server: https://localhost:8443
-  name: minikube
-```
-
-**5. Test the connection:**
-
-```bash
+# Test connection
 kubectl get nodes
-kubectl get pods --all-namespaces
 ```
 
-**Alternative: Use a dedicated kubeconfig file:**
+Alternative using sshuttle:
 
 ```bash
-# Set KUBECONFIG environment variable
-export KUBECONFIG=~/.kube/homelab-config
-
-# Or specify it with each command
-kubectl --kubeconfig ~/.kube/homelab-config get nodes
-```
-
-**Tip:** You can also use `sshuttle` for a more seamless VPN-like experience:
-
-```bash
-# Install sshuttle (macOS)
-brew install sshuttle
-
-# Create tunnel to server's network
+brew install sshuttle  # macOS
 sshuttle -r user@your-server-ip $(minikube ip)/24
 ```
 
----
+### Storage Management
+
+```bash
+# Access Minikube storage
+minikube ssh
+cd /opt/local-path-provisioner/
+ls -la
+
+# Check disk usage
+df -h /opt/local-path-provisioner/
+```
+
+### Backup
+
+```bash
+# Backup Gogs
+kubectl exec -n git <pod-name> -- tar czf /tmp/backup.tar.gz /data
+kubectl cp git/<pod-name>:/tmp/backup.tar.gz ./gogs-backup.tar.gz
+```
 
 ## Troubleshooting
 
-### Issue: Can't access services
+### Can't Access Services
 
-**Solution:**
 ```bash
-# Get service URLs
 minikube service list
-
 # Or use port forwarding
 kubectl port-forward -n <namespace> svc/<service-name> 8080:80
 ```
 
-### Issue: Pods not starting
+### Pods Not Starting
 
-**Solution:**
 ```bash
-# Check pod status
 kubectl get pods --all-namespaces
-
-# Describe the pod
 kubectl describe pod -n <namespace> <pod-name>
-
-# Check logs
 kubectl logs -n <namespace> <pod-name>
 ```
 
-### Issue: Out of disk space
+### Out of Disk Space
 
-**Solution:**
 ```bash
-# Check disk usage
 df -h
-
-# Clean up Docker
 minikube ssh
 docker system prune -a
-
-# Check Minikube disk
-minikube ssh
-df -h /opt/local-path-provisioner/
 ```
 
-For more issues, see [Troubleshooting Guide](docs/troubleshooting.md).
+### Minikube Won't Start
 
----
+```bash
+minikube delete
+minikube start --driver=docker
+```
+
+### Pod Stuck Pending
+
+```bash
+kubectl describe pod -n <namespace> <pod-name>
+# Usually storage or resource issues
+```
+
+See [docs/troubleshooting.md](docs/troubleshooting.md) for more help.
+
+## Performance Tuning
+
+Increase Minikube resources in `group_vars/all.yml`:
+
+```yaml
+minikube_cpus: 4
+minikube_memory: "8192"
+minikube_disk_size: "50g"
+```
+
+Then recreate:
+
+```bash
+minikube delete
+ansible-playbook -i inventory/hosts.yml playbooks/infrastructure.yml --tags minikube
+```
+
+## Next Steps
+
+### 1. Secure Installation
+
+Change all default passwords in `group_vars/all.yml`:
+
+```yaml
+pihole_admin_password: "strong-password-here"
+```
+
+Re-run:
+
+```bash
+ansible-playbook -i inventory/hosts.yml playbooks/applications.yml
+```
+
+### 2. Configure Pi-hole DNS
+
+**Router-level (recommended):**
+Set DHCP DNS server to your server's IP
+
+**Per-device:**
+Get Pi-hole IP: `minikube service pihole-dns -n pihole --url`
+
+### 3. Set Up Backups
+
+Important data:
+- Gogs repositories
+- Pi-hole configuration
+
+See [docs/applications.md](docs/applications.md) for backup procedures.
+
+### 4. Security Best Practices
+
+- Set up SSH key authentication
+- Disable SSH password authentication (after confirming keys work)
+- Change all default passwords
+- Set up Tailscale for secure remote access
+- Regular backups
+- Monitor logs
+- Don't expose services directly to internet without proxy/SSL
 
 ## Documentation
 
-- **[README.md](README.md)** - Project overview
-- **[QUICKSTART.md](QUICKSTART.md)** - Quick reference guide
-- **[docs/bootstrap.md](docs/bootstrap.md)** - Detailed bootstrap guide
-- **[docs/ssh-security.md](docs/ssh-security.md)** - SSH security hardening
-- **[docs/infrastructure.md](docs/infrastructure.md)** - Infrastructure components
-- **[docs/applications.md](docs/applications.md)** - Application guides
-- **[docs/troubleshooting.md](docs/troubleshooting.md)** - Problem solving
+- [README.md](README.md) - Project overview
+- [docs/bootstrap.md](docs/bootstrap.md) - Bootstrap details
+- [docs/ssh-security.md](docs/ssh-security.md) - SSH hardening
+- [docs/infrastructure.md](docs/infrastructure.md) - Infrastructure components
+- [docs/applications.md](docs/applications.md) - Application configuration
+- [docs/tailscale-operator.md](docs/tailscale-operator.md) - Tailscale setup
+- [docs/troubleshooting.md](docs/troubleshooting.md) - Troubleshooting guide
 
 ---
 
-## Support
-
-If you encounter issues:
-
-1. Check the [Troubleshooting Guide](docs/troubleshooting.md)
-2. Review application logs: `kubectl logs -n <namespace> <pod-name>`
-3. Check GitHub issues
-4. Consult official documentation for each component
-
----
-
-## Summary
-
-You now have a complete self-hosted infrastructure running:
-
-✅ Kubernetes cluster (Minikube)  
-✅ Git server (Gogs)  
-✅ Media management (Sonarr, qBittorrent)  
-✅ Ad blocking (Pi-hole)  
-✅ VPN (Tailscale)  
-✅ Automated updates  
-
-Enjoy your infrastructure! 🚀
+Complete self-hosted infrastructure with Kubernetes, Git server, media management, ad blocking, and VPN.

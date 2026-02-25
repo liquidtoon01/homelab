@@ -37,7 +37,6 @@ echo ""
 # Root files
 check_file "README.md"
 check_file "GETTING_STARTED.md"
-check_file "QUICKSTART.md"
 check_file "CHANGELOG.md"
 check_file "REQUIREMENTS.md"
 check_file "PROJECT_STRUCTURE.md"

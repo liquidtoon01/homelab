@@ -56,7 +56,7 @@
       
       service:
         main:
-          type: LoadBalancer
+          type: ClusterIP
           annotations:
             tailscale.com/expose: "true"
             tailscale.com/hostname: "{{ tailscale_sonarr_hostname | default('sonarr') }}"

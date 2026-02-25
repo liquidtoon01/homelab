@@ -92,8 +92,7 @@ ansible-playbook -i inventory/hosts.yml playbooks/applications.yml
 
 ## Documentation
 
-- [Getting Started Guide](GETTING_STARTED.md) - Complete step-by-step setup
-- [Quick Start](QUICKSTART.md) - Quick reference
+- [Getting Started Guide](GETTING_STARTED.md) - Setup and reference guide
 - [Bootstrap Guide](docs/bootstrap.md)
 - [SSH Security Guide](docs/ssh-security.md)
 - [Infrastructure Components](docs/infrastructure.md)
