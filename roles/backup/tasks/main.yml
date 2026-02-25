@@ -31,46 +31,46 @@
 
     - name: Create backup info file
       ansible.builtin.copy:
-    content: |
-      # Minikube Volume Backup Information
+        content: |
+          # Minikube Volume Backup Information
 
-      **Backup Created:** {{ ansible_facts.date_time.iso8601 }}
-      
-      **Original Path:** `{{ backup_source_dir }}`
-      
-      **Hostname:** {{ ansible_facts.hostname }}
-      
-      **Total Items:** {{ source_contents.matched }}
-      
-      ## Archive Contents
-      
-      This archive contains a backup of all Minikube persistent volumes, including:
-      - Application configurations
-      - Database data (PostgreSQL for Gogs)
-      - Git repositories (Gogs)
-      - Downloaded media files (qBittorrent)
-      - Application state (Sonarr, Pi-hole)
-      
-      ## Exclusions
-      
-      The following file types are excluded from the backup:
-      - `*.sock` - Unix domain sockets
-      - `*-socket` - Socket files
-      - `ipc-socket` - Inter-process communication sockets
-      
-      ## Restore Instructions
-      
-      To restore this backup:
-      
-      ```bash
-      # Extract the archive
-      tar -xzf {{ backup_filename }}
-      
-      # Copy contents to original location (requires root)
-      sudo cp -r * {{ backup_source_dir }}/
-      ```
-    dest: "{{ backup_temp_dir }}/BACKUP_INFO.md"
-    mode: '0644'
+          **Backup Created:** {{ ansible_facts.date_time.iso8601 }}
+          
+          **Original Path:** `{{ backup_source_dir }}`
+          
+          **Hostname:** {{ ansible_facts.hostname }}
+          
+          **Total Items:** {{ source_contents.matched }}
+          
+          ## Archive Contents
+          
+          This archive contains a backup of all Minikube persistent volumes, including:
+          - Application configurations
+          - Database data (PostgreSQL for Gogs)
+          - Git repositories (Gogs)
+          - Downloaded media files (qBittorrent)
+          - Application state (Sonarr, Pi-hole)
+          
+          ## Exclusions
+          
+          The following file types are excluded from the backup:
+          - `*.sock` - Unix domain sockets
+          - `*-socket` - Socket files
+          - `ipc-socket` - Inter-process communication sockets
+          
+          ## Restore Instructions
+          
+          To restore this backup:
+          
+          ```bash
+          # Extract the archive
+          tar -xzf {{ backup_filename }}
+          
+          # Copy contents to original location (requires root)
+          sudo cp -r * {{ backup_source_dir }}/
+          ```
+        dest: "{{ backup_temp_dir }}/BACKUP_INFO.md"
+        mode: '0644'
 
     - name: Create backup archive (excluding socket files)
       ansible.builtin.command:
