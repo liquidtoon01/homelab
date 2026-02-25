@@ -5,156 +5,78 @@
   changed_when: false
   become: no
 
-- name: Create Gitea data PVC
-  ansible.builtin.shell: |
-    kubectl apply -f - <<EOF
-    apiVersion: v1
-    kind: PersistentVolumeClaim
-    metadata:
-      name: gitea-data
-      namespace: {{ gitea_namespace }}
-    spec:
-      accessModes:
-        - ReadWriteOnce
-      storageClassName: {{ storage_class }}
+- name: Add Gitea Helm repository
+  ansible.builtin.command: helm repo add gitea-charts https://dl.gitea.com/charts/
+  changed_when: false
+  become: no
+
+- name: Update Helm repositories
+  ansible.builtin.command: helm repo update
+  changed_when: false
+  become: no
+
+- name: Create Gitea Helm values file
+  ansible.builtin.copy:
+    dest: /tmp/gitea-values.yaml
+    content: |
+      persistence:
+        enabled: true
+        size: 10Gi
+        storageClass: {{ storage_class }}
+      
+      gitea:
+        admin:
+          username: gitea
+          password: "{{ vault_gitea_admin_password | default('changeme') }}"
+          email: admin@{{ tailscale_gitea_hostname | default('gitea') }}
+        
+        config:
+          database:
+            DB_TYPE: sqlite3
+          
+          server:
+            DOMAIN: {{ tailscale_gitea_hostname | default('gitea') }}
+            ROOT_URL: http://{{ tailscale_gitea_hostname | default('gitea') }}:3000/
+            DISABLE_SSH: false
+            SSH_PORT: 22
+            LFS_START_SERVER: true
+          
+          session:
+            PROVIDER: file
+          
+          log:
+            MODE: console
+            LEVEL: info
+      
+      service:
+        http:
+          type: LoadBalancer
+          port: 3000
+          annotations:
+            tailscale.com/expose: "true"
+            tailscale.com/hostname: "{{ tailscale_gitea_hostname | default('gitea') }}"
+        
+        ssh:
+          type: LoadBalancer
+          port: 22
+          annotations:
+            tailscale.com/expose: "true"
+            tailscale.com/hostname: "{{ tailscale_gitea_ssh_hostname | default('gitea-ssh') }}"
+      
       resources:
+        limits:
+          cpu: 1000m
+          memory: 1Gi
         requests:
-          storage: 10Gi
-    EOF
-  changed_when: true
-  become: no
+          cpu: 200m
+          memory: 512Mi
 
-- name: Create Gitea ConfigMap
-  ansible.builtin.shell: |
-    kubectl apply -f - <<EOF
-    apiVersion: v1
-    kind: ConfigMap
-    metadata:
-      name: gitea-config
-      namespace: {{ gitea_namespace }}
-    data:
-      app.ini: |
-        APP_NAME = Gitea: Git with a cup of tea
-        RUN_MODE = prod
-        
-        [database]
-        DB_TYPE = sqlite3
-        PATH = /data/gitea/gitea.db
-        
-        [repository]
-        ROOT = /data/git/repositories
-        
-        [server]
-        DOMAIN = {{ tailscale_gitea_hostname | default('gitea') }}
-        HTTP_PORT = 3000
-        ROOT_URL = http://{{ tailscale_gitea_hostname | default('gitea') }}:3000/
-        DISABLE_SSH = false
-        SSH_PORT = 22
-        LFS_START_SERVER = true
-        
-        [session]
-        PROVIDER = file
-        
-        [log]
-        MODE = console
-        LEVEL = info
-        
-        [security]
-        INSTALL_LOCK = false
-        SECRET_KEY = {{ gitea_secret_key | default('change-this-to-a-unique-string') }}
-    EOF
-  changed_when: true
-  become: no
-
-- name: Deploy Gitea
-  ansible.builtin.shell: |
-    kubectl apply -f - <<EOF
-    apiVersion: apps/v1
-    kind: Deployment
-    metadata:
-      name: gitea
-      namespace: {{ gitea_namespace }}
-    spec:
-      replicas: 1
-      selector:
-        matchLabels:
-          app: gitea
-      template:
-        metadata:
-          labels:
-            app: gitea
-        spec:
-          containers:
-          - name: gitea
-            image: gitea/gitea:{{ gitea_version | default('1.21') }}
-            ports:
-            - containerPort: 3000
-              name: http
-            - containerPort: 22
-              name: ssh
-            volumeMounts:
-            - name: data
-              mountPath: /data
-            - name: config
-              mountPath: /etc/gitea
-            env:
-            - name: USER_UID
-              value: "1000"
-            - name: USER_GID
-              value: "1000"
-          volumes:
-          - name: data
-            persistentVolumeClaim:
-              claimName: gitea-data
-          - name: config
-            configMap:
-              name: gitea-config
-    EOF
-  changed_when: true
-  become: no
-
-- name: Create Gitea HTTP Service
-  ansible.builtin.shell: |
-    kubectl apply -f - <<EOF
-    apiVersion: v1
-    kind: Service
-    metadata:
-      name: gitea-http
-      namespace: {{ gitea_namespace }}
-      annotations:
-        tailscale.com/expose: "true"
-        tailscale.com/hostname: "{{ tailscale_gitea_hostname | default('gitea') }}"
-    spec:
-      type: LoadBalancer
-      selector:
-        app: gitea
-      ports:
-      - protocol: TCP
-        port: 3000
-        targetPort: 3000
-    EOF
-  changed_when: true
-  become: no
-
-- name: Create Gitea SSH Service
-  ansible.builtin.shell: |
-    kubectl apply -f - <<EOF
-    apiVersion: v1
-    kind: Service
-    metadata:
-      name: gitea-ssh
-      namespace: {{ gitea_namespace }}
-      annotations:
-        tailscale.com/expose: "true"
-        tailscale.com/hostname: "{{ tailscale_gitea_ssh_hostname | default('gitea-ssh') }}"
-    spec:
-      type: LoadBalancer
-      selector:
-        app: gitea
-      ports:
-      - protocol: TCP
-        port: 22
-        targetPort: 22
-    EOF
+- name: Deploy Gitea using Helm
+  ansible.builtin.command: >
+    helm upgrade --install gitea gitea-charts/gitea
+    --namespace {{ gitea_namespace }}
+    --values /tmp/gitea-values.yaml
+    {{ '--version ' + gitea_chart_version if gitea_chart_version else '' }}
+    --wait
   changed_when: true
   become: no
