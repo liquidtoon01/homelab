@@ -20,6 +20,17 @@ sudo bash bootstrap.sh
 nano group_vars/all.yml
 # Set: tailscale_oauth_client_id: "your-client-id"
 # Set: tailscale_oauth_client_secret: "your-client-secret"
+nano helm_apps/defaults/main.yml
+# Set: tailscale_oauth_client_id: "your-client-id"
+# Set: tailscale_oauth_client_secret: "your-client-secret"
+nano roles/tailscale/defaults/main.yml
+# Set: tailscale_auth_key: "your-tailscale-auth-key"
+nano roles/backup/defaults/main.yml
+# Set: pushover_enabled: true
+# Set: pushover_user_key: "your-pushover-user-key"
+# Set: pushover_api_token: "your-pushover-api-token"
+
+
 
 # 4. Deploy everything
 ansible-playbook -i inventory/hosts.yml playbooks/site.yml

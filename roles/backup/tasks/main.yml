@@ -127,9 +127,22 @@
         state: absent
 
   rescue:
-    - name: Set error message
+    - name: Set error message with details
       ansible.builtin.set_fact:
-        backup_error_msg: "Backup failed on {{ ansible_facts.hostname }}: {{ ansible_failed_result.msg | default('Unknown error') }}"
+        backup_error_msg: |
+          Backup failed on {{ ansible_facts.hostname }}
+          
+          Error: {{ ansible_failed_result.msg | default('Unknown error') }}
+          {% if ansible_failed_result.stderr is defined and ansible_failed_result.stderr %}
+          
+          Stderr: {{ ansible_failed_result.stderr }}
+          {% endif %}
+          {% if ansible_failed_result.stdout is defined and ansible_failed_result.stdout %}
+          
+          Stdout: {{ ansible_failed_result.stdout }}
+          {% endif %}
+          
+          Task: {{ ansible_failed_task.name | default('Unknown task') }}
 
     - name: Display error message
       ansible.builtin.debug:
@@ -162,7 +175,12 @@
     body:
       token: "{{ pushover_api_token }}"
       user: "{{ pushover_user_key }}"
-      message: "Backup archive was not created on {{ ansible_facts.hostname }}. Tar exit code: {{ tar_result.rc }}"
+      message: |
+        Backup archive was not created on {{ ansible_facts.hostname }}
+        
+        Tar exit code: {{ tar_result.rc }}
+        {% if tar_result.stderr %}Stderr: {{ tar_result.stderr }}{% endif %}
+        {% if tar_result.stdout %}Stdout: {{ tar_result.stdout }}{% endif %}
       title: "Backup Warning"
       priority: "{{ pushover_priority }}"
     status_code: 200
@@ -179,7 +197,13 @@
     body:
       token: "{{ pushover_api_token }}"
       user: "{{ pushover_user_key }}"
-      message: "Tailscale is not running on {{ ansible_facts.hostname }}. Backup created at {{ backup_temp_dir }}/{{ backup_filename }} but not sent to {{ tailscale_target_ip }}."
+      message: |
+        Tailscale is not running on {{ ansible_facts.hostname }}
+        
+        Backup created at: {{ backup_temp_dir }}/{{ backup_filename }}
+        Target IP: {{ tailscale_target_ip }}
+        
+        Error: {{ tailscale_status.stderr | default('Tailscale status check failed') }}
       title: "Backup Warning"
       priority: "{{ pushover_priority }}"
     status_code: 200

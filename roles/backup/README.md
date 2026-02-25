@@ -69,9 +69,9 @@ pushover_priority: 1  # High priority for errors
 ```
 
 Notifications are sent when:
-- Backup tasks fail (critical errors)
-- Backup archive is not created
-- Tailscale is not running (backup created but not sent)
+- Backup tasks fail (critical errors) - includes error message, stderr, stdout, and task name
+- Backup archive is not created - includes tar exit code and error output
+- Tailscale is not running (backup created but not sent) - includes Tailscale error details
 
 Or override in your playbook:
 
