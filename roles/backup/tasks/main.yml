@@ -1,0 +1,54 @@
+---
+- name: Check if backup source directory exists
+  ansible.builtin.stat:
+    path: "{{ backup_source_dir }}"
+  register: backup_source
+
+- name: Fail if backup source does not exist
+  ansible.builtin.fail:
+    msg: "Backup source directory {{ backup_source_dir }} does not exist"
+  when: not backup_source.stat.exists
+
+- name: Create backup archive
+  ansible.builtin.command:
+    cmd: "zip -r {{ backup_temp_dir }}/{{ backup_filename }} ."
+    chdir: "{{ backup_source_dir }}"
+  changed_when: true
+
+- name: Check if backup file was created
+  ansible.builtin.stat:
+    path: "{{ backup_temp_dir }}/{{ backup_filename }}"
+  register: backup_file
+
+- name: Display backup file size
+  ansible.builtin.debug:
+    msg: "Backup created: {{ backup_temp_dir }}/{{ backup_filename }} ({{ (backup_file.stat.size / 1024 / 1024) | round(2) }} MB)"
+  when: backup_file.stat.exists
+
+- name: Check if Tailscale is running
+  ansible.builtin.command: tailscale status
+  register: tailscale_status
+  changed_when: false
+  failed_when: false
+
+- name: Send backup via Tailscale taildrop
+  ansible.builtin.command:
+    cmd: "tailscale file cp {{ backup_temp_dir }}/{{ backup_filename }} {{ tailscale_target_ip }}:"
+  when: tailscale_status.rc == 0
+  changed_when: true
+
+- name: Display taildrop status
+  ansible.builtin.debug:
+    msg: "Backup sent to {{ tailscale_target_ip }} via Tailscale taildrop"
+  when: tailscale_status.rc == 0
+
+- name: Warning if Tailscale is not running
+  ansible.builtin.debug:
+    msg: "WARNING: Tailscale is not running. Backup created at {{ backup_temp_dir }}/{{ backup_filename }} but not sent."
+  when: tailscale_status.rc != 0
+
+- name: Remove backup file from temp directory
+  ansible.builtin.file:
+    path: "{{ backup_temp_dir }}/{{ backup_filename }}"
+    state: absent
+  when: tailscale_status.rc == 0

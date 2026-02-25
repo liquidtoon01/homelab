@@ -418,11 +418,37 @@ Get Pi-hole IP: `minikube service pihole-dns -n pihole --url`
 
 ### 3. Set Up Backups
 
-Important data:
-- Gogs repositories
-- Pi-hole configuration
+**Automated Backup:**
 
-See [docs/applications.md](docs/applications.md) for backup procedures.
+Backup all Minikube volumes and send via Tailscale:
+
+```bash
+# Using Make
+make backup
+
+# Using Ansible directly
+ansible-playbook -i inventory/hosts.yml playbooks/backup.yml
+```
+
+This will:
+- Create a timestamped zip archive of `/var/lib/docker/volumes/minikube/_data/hostpath-provisioner`
+- Send the backup to your Tailscale device (default: 100.97.131.29)
+- Clean up temporary files
+
+**Manual Backup:**
+
+Important data locations:
+- Gogs repositories: Inside Minikube volumes
+- Pi-hole configuration: Inside Minikube volumes
+- All persistent data: `/var/lib/docker/volumes/minikube/_data/hostpath-provisioner`
+
+See [docs/applications.md](docs/applications.md) for application-specific backup procedures.
+
+**Configure Backup Target:**
+
+Edit `roles/backup/defaults/main.yml` to change:
+- `tailscale_target_ip`: Target device IP (default: 100.97.131.29)
+- `backup_source_dir`: Source directory to backup
 
 ### 4. Security Best Practices
 

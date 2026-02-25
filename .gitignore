@@ -32,4 +32,3 @@ id_rsa*
 # Backups
 *.backup
 *.bak
-backup/

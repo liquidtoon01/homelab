@@ -78,7 +78,8 @@ ansible-playbook -i inventory/hosts.yml playbooks/applications.yml
 ├── playbooks/
 │   ├── site.yml              # Main playbook (runs everything)
 │   ├── infrastructure.yml    # Infrastructure setup playbook
-│   └── applications.yml      # Helm applications playbook
+│   ├── applications.yml      # Helm applications playbook
+│   └── backup.yml            # Backup playbook
 ├── roles/
 │   ├── base/                 # Base system configuration
 │   ├── minikube/             # Minikube installation
@@ -86,6 +87,7 @@ ansible-playbook -i inventory/hosts.yml playbooks/applications.yml
 │   ├── helm/                 # Helm installation
 │   ├── tailscale/            # Tailscale installation
 │   ├── apt_updates/          # Scheduled apt updates
+│   ├── backup/               # Backup Minikube volumes
 │   └── helm_apps/            # Helm applications deployment
 └── docs/                     # Documentation
 ```

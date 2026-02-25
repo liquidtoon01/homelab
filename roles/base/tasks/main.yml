@@ -16,6 +16,7 @@
       - python3-pip
       - git
       - wget
+      - zip
       - unzip
       - conntrack
       - socat

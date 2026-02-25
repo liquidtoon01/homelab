@@ -85,3 +85,7 @@ logs-qbittorrent: ## Show qBittorrent logs
 
 logs-pihole: ## Show Pi-hole logs
 	kubectl logs -n pihole -l app=pihole --tail=100
+
+backup: ## Backup Minikube volumes and send via Tailscale
+	@echo "Creating backup of Minikube volumes..."
+	ansible-playbook -i inventory/hosts.yml playbooks/backup.yml

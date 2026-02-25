@@ -70,11 +70,12 @@ echo ""
 check_file "playbooks/site.yml"
 check_file "playbooks/infrastructure.yml"
 check_file "playbooks/applications.yml"
+check_file "playbooks/backup.yml"
 
 echo ""
 
 # Roles
-ROLES=("base" "kubectl" "helm" "minikube" "tailscale" "apt_updates" "helm_apps")
+ROLES=("base" "kubectl" "helm" "minikube" "tailscale" "apt_updates" "backup" "helm_apps")
 for role in "${ROLES[@]}"; do
     check_dir "roles/$role"
     check_dir "roles/$role/tasks"
