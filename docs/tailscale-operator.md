@@ -34,7 +34,6 @@ tailscale_operator_hostname: "ts-operator"
 # Customize Tailscale hostnames (optional)
 tailscale_gogs_hostname: "gogs"
 tailscale_sonarr_hostname: "sonarr"
-tailscale_headscale_hostname: "headscale"
 tailscale_qbittorrent_hostname: "qbittorrent"
 tailscale_pihole_hostname: "pihole"
 ```
@@ -70,7 +69,6 @@ Once deployed, you can access applications from any device on your Tailnet:
 | Gogs | `http://gogs` | Git web interface |
 | Gogs SSH | `ssh://gogs-ssh` | Git SSH access |
 | Sonarr | `http://sonarr:8989` | TV show PVR |
-| Headscale | `http://headscale:8080` | Tailscale control server |
 | qBittorrent | `http://qbittorrent:8080` | BitTorrent client |
 | Pi-hole | `http://pihole` | Ad blocker web UI |
 

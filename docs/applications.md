@@ -10,7 +10,6 @@ All applications are accessible via Tailscale hostnames. See [Tailscale Operator
 |-------------|---------|-------------------|-------------------|---------------|
 | Gogs | Self-hosted Git service | git | `http://gogs` | 3000 |
 | Sonarr | TV show PVR | media | `http://sonarr:8989` | 8989 |
-| Headscale | Self-hosted Tailscale control | headscale | `http://headscale:8080` | 8080 |
 | qBittorrent | BitTorrent client | media | `http://qbittorrent:8080` | 8080 |
 | Pi-hole | Network-wide ad blocker & DNS | pihole | `http://pihole` | 80 |
 
@@ -133,75 +132,6 @@ In Sonarr settings:
 
 - Config: `/config` (1Gi)
 - Media: `/media` (50Gi)
-
----
-
-## Headscale
-
-**Purpose**: Self-hosted Tailscale control server.
-
-**Helm Chart**: https://artifacthub.io/packages/helm/headscale/headscale
-
-**Namespace**: `headscale`
-
-### Access
-
-**Primary (Tailscale):**
-```bash
-# Web interface
-http://headscale:8080
-```
-
-**Fallback (NodePort):**
-```bash
-# Get access URL
-minikube service headscale -n headscale
-```
-
-### Configuration
-
-Headscale is configured with:
-- IP prefix: 100.64.0.0/10
-- HTTP server on port 8080
-- Metrics on port 9090
-- Persistent storage (1Gi PVC)
-
-### Initial Setup
-
-```bash
-# Get a shell in the Headscale pod
-kubectl exec -it -n headscale <pod-name> -- /bin/sh
-
-# Create a user/namespace
-headscale users create default
-
-# Generate a pre-auth key
-headscale preauthkeys create --user default --reusable
-```
-
-### Connect Clients
-
-On client machines:
-```bash
-tailscale up --login-server=http://<headscale-url>:8080 --authkey=<preauth-key>
-```
-
-### Management Commands
-
-```bash
-# List nodes
-kubectl exec -it -n headscale <pod-name> -- headscale nodes list
-
-# List users
-kubectl exec -it -n headscale <pod-name> -- headscale users list
-
-# Create routes
-kubectl exec -it -n headscale <pod-name> -- headscale routes list
-```
-
-### Persistent Data
-
-Location: `/etc/headscale` inside the pod
 
 ---
 

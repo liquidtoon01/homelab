@@ -4,7 +4,6 @@
   loop:
     - { name: "tailscale", url: "https://pkgs.tailscale.com/helmcharts" }
     - { name: "keyporttech", url: "https://keyporttech.github.io/helm-charts/" }
-    - { name: "headscale", url: "https://helm.headscale.net/" }
     - { name: "k8s-at-home", url: "https://k8s-at-home.com/charts/" }
     - { name: "gabe565", url: "https://charts.gabe565.com" }
     - { name: "mojo2600", url: "https://mojo2600.github.io/pihole-kubernetes/" }
@@ -37,9 +36,6 @@
 
 - name: Deploy Sonarr
   ansible.builtin.include_tasks: sonarr.yml
-
-- name: Deploy Headscale
-  ansible.builtin.include_tasks: headscale.yml
 
 - name: Deploy qBittorrent
   ansible.builtin.include_tasks: qbittorrent.yml

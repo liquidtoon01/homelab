@@ -1,110 +1,70 @@
 ---
-- name: Create qBittorrent manifest
-  ansible.builtin.copy:
-    dest: /tmp/qbittorrent-manifest.yaml
-    content: |
-      ---
-      apiVersion: v1
-      kind: PersistentVolumeClaim
-      metadata:
-        name: qbittorrent-config
-        namespace: {{ qbittorrent_namespace }}
-      spec:
-        accessModes:
-          - ReadWriteOnce
-        storageClassName: {{ storage_class }}
-        resources:
-          requests:
-            storage: 1Gi
-      ---
-      apiVersion: v1
-      kind: PersistentVolumeClaim
-      metadata:
-        name: qbittorrent-downloads
-        namespace: {{ qbittorrent_namespace }}
-      spec:
-        accessModes:
-          - ReadWriteOnce
-        storageClassName: {{ storage_class }}
-        resources:
-          requests:
-            storage: 100Gi
-      ---
-      apiVersion: apps/v1
-      kind: Deployment
-      metadata:
-        name: qbittorrent
-        namespace: {{ qbittorrent_namespace }}
-        labels:
-          app: qbittorrent
-      spec:
-        replicas: 1
-        selector:
-          matchLabels:
-            app: qbittorrent
-        template:
-          metadata:
-            labels:
-              app: qbittorrent
-          spec:
-            containers:
-            - name: qbittorrent
-              image: linuxserver/qbittorrent:latest
-              ports:
-              - containerPort: 8080
-                name: http
-              - containerPort: 6881
-                name: torrent-tcp
-                protocol: TCP
-              - containerPort: 6881
-                name: torrent-udp
-                protocol: UDP
-              env:
-              - name: PUID
-                value: "1000"
-              - name: PGID
-                value: "1000"
-              - name: TZ
-                value: "UTC"
-              - name: WEBUI_PORT
-                value: "8080"
-              volumeMounts:
-              - name: config
-                mountPath: /config
-              - name: downloads
-                mountPath: /downloads
-            volumes:
-            - name: config
-              persistentVolumeClaim:
-                claimName: qbittorrent-config
-            - name: downloads
-              persistentVolumeClaim:
-                claimName: qbittorrent-downloads
-      ---
-      apiVersion: v1
-      kind: Service
-      metadata:
-        name: qbittorrent
-        namespace: {{ qbittorrent_namespace }}
-        annotations:
-          tailscale.com/expose: "true"
-          tailscale.com/hostname: "{{ tailscale_qbittorrent_hostname | default('qbittorrent') }}"
-      spec:
-        type: LoadBalancer
-        selector:
-          app: qbittorrent
-        ports:
-        - name: http
-          port: 8080
-          targetPort: 8080
-
-- name: Deploy qBittorrent using kubectl
-  ansible.builtin.command: kubectl apply -f /tmp/qbittorrent-manifest.yaml
-  changed_when: true
-  become: no
-
-- name: Wait for qBittorrent to be ready
-  ansible.builtin.command: kubectl -n {{ qbittorrent_namespace }} wait --for=condition=available deployment/qbittorrent --timeout=300s
+- name: Create qBittorrent namespace
+  ansible.builtin.command: kubectl create namespace {{ qbittorrent_namespace }}
+  failed_when: false
   changed_when: false
   become: no
-  failed_when: false
+
+- name: Update Helm repositories
+  ansible.builtin.command: helm repo update
+  changed_when: false
+  become: no
+
+- name: Create qBittorrent Helm values file
+  ansible.builtin.copy:
+    dest: /tmp/qbittorrent-values.yaml
+    content: |
+      env:
+        TZ: UTC
+        PUID: "1000"
+        PGID: "1000"
+        WEBUI_PORT: "8080"
+      
+      service:
+        main:
+          type: ClusterIP
+          annotations:
+            tailscale.com/expose: "true"
+            tailscale.com/hostname: "{{ tailscale_qbittorrent_hostname | default('qbittorrent') }}"
+          ports:
+            http:
+              port: 8080
+        bittorrent:
+          enabled: true
+          type: ClusterIP
+          ports:
+            bittorrent:
+              enabled: true
+              port: 6881
+              protocol: TCP
+      
+      persistence:
+        config:
+          enabled: true
+          storageClass: {{ storage_class }}
+          accessMode: ReadWriteOnce
+          size: 1Gi
+        downloads:
+          enabled: true
+          mountPath: /downloads
+          storageClass: {{ storage_class }}
+          accessMode: ReadWriteOnce
+          size: 10Gi
+      
+      resources:
+        limits:
+          cpu: 1000m
+          memory: 2Gi
+        requests:
+          cpu: 200m
+          memory: 512Mi
+
+- name: Deploy qBittorrent using Helm
+  ansible.builtin.command: >
+    helm upgrade --install qbittorrent gabe565/qbittorrent
+    --namespace {{ qbittorrent_namespace }}
+    --values /tmp/qbittorrent-values.yaml
+    {{ '--version ' + qbittorrent_chart_version if qbittorrent_chart_version else '' }}
+    --wait
+  changed_when: true
+  become: no

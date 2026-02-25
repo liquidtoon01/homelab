@@ -15,7 +15,6 @@ This setup installs and configures:
 And deploys the following applications via Helm:
 - **Gogs** - Self-hosted Git service (accessible via Tailscale at `http://gogs`)
 - **Sonarr** - PVR for TV shows (accessible via Tailscale at `http://sonarr`)
-- **Headscale** - Self-hosted Tailscale control server (accessible via Tailscale at `http://headscale`)
 - **qBittorrent** - BitTorrent client (accessible via Tailscale at `http://qbittorrent`)
 - **Pi-hole** - Network-wide ad blocker and DNS server (accessible via Tailscale at `http://pihole`)
 

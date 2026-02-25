@@ -90,7 +90,7 @@ check_file "roles/helm_apps/tasks/tailscale-operator.yml"
 check_file "roles/helm_apps/tasks/storage.yml"
 check_file "roles/helm_apps/tasks/gogs.yml" # Gogs deployment
 check_file "roles/helm_apps/tasks/sonarr.yml"
-check_file "roles/helm_apps/tasks/headscale.yml"
+
 check_file "roles/helm_apps/tasks/qbittorrent.yml"
 check_file "roles/helm_apps/tasks/pihole.yml"
 

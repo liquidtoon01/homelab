@@ -71,9 +71,8 @@ clean-apps: ## Uninstall all applications
 	helm uninstall gogs -n git || true
 	helm uninstall sonarr -n media || true
 	helm uninstall qbittorrent -n media || true
-	helm uninstall headscale -n headscale || true
 	helm uninstall pihole -n pihole || true
-	kubectl delete namespace git media headscale pihole || true
+	kubectl delete namespace git media pihole || true
 
 logs-gogs: ## Show Gogs logs
 	kubectl logs -n git -l app=gogs --tail=100
@@ -83,9 +82,6 @@ logs-sonarr: ## Show Sonarr logs
 
 logs-qbittorrent: ## Show qBittorrent logs
 	kubectl logs -n media -l app.kubernetes.io/name=qbittorrent --tail=100
-
-logs-headscale: ## Show Headscale logs
-	kubectl logs -n headscale -l app.kubernetes.io/name=headscale --tail=100
 
 logs-pihole: ## Show Pi-hole logs
 	kubectl logs -n pihole -l app=pihole --tail=100

@@ -154,7 +154,6 @@ This will:
 - Storage provisioner (local-path)
 - Gogs (Git server)
 - Sonarr (TV shows)
-- Headscale (Tailscale controller)
 - qBittorrent (Downloads)
 - Pi-hole (DNS/Ad blocking)
 
@@ -196,7 +195,6 @@ Once the Tailscale operator is configured and deployed, all applications are acc
 | Gogs | `http://gogs` | Git web interface |
 | Gogs SSH | `ssh://gogs-ssh` | Git SSH access |
 | Sonarr | `http://sonarr:8989` | TV show manager |
-| Headscale | `http://headscale:8080` | Tailscale control server |
 | qBittorrent | `http://qbittorrent:8080` | BitTorrent client |
 | Pi-hole | `http://pihole` | Ad blocker web UI |
 
@@ -515,7 +513,7 @@ You now have a complete self-hosted infrastructure running:
 ✅ Git server (Gogs)  
 ✅ Media management (Sonarr, qBittorrent)  
 ✅ Ad blocking (Pi-hole)  
-✅ VPN (Tailscale/Headscale)  
+✅ VPN (Tailscale)  
 ✅ Automated updates  
 
 Enjoy your infrastructure! 🚀

@@ -121,7 +121,6 @@ The following ports are used (all on localhost/Minikube by default):
 - **Gogs**: 3000 (HTTP), 22 (SSH)
 - **Sonarr**: 8989
 - **qBittorrent**: 8080
-- **Headscale**: 8080
 - **Kubernetes API**: 8443 (Minikube)
 
 ## Post-Installation

@@ -63,7 +63,6 @@ All notable changes to this project will be documented in this file.
   - Rancher local-path-provisioner for storage
   - Gogs for self-hosted Git
   - Sonarr for TV show management
-  - Headscale for self-hosted Tailscale control
   - Immich for photo/video backup
   - qBittorrent for torrent downloads
   - Pi-hole for network-wide ad blocking and DNS

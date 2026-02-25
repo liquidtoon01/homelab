@@ -64,7 +64,6 @@ sudo systemctl restart sshd
 ✅ CSI Storage Driver (local-path-provisioner)  
 ✅ Gogs (Git server) - `http://gogs`  
 ✅ Sonarr (TV shows) - `http://sonarr:8989`  
-✅ Headscale (Tailscale controller) - `http://headscale:8080`  
 ✅ qBittorrent (Downloads) - `http://qbittorrent:8080`  
 ✅ Pi-hole (DNS/Ad blocker) - `http://pihole`  
 
@@ -75,7 +74,6 @@ Connect to your Tailnet on your device, then access applications via:
 - Gogs: `http://gogs`
 - Sonarr: `http://sonarr:8989`
 - qBittorrent: `http://qbittorrent:8080`
-- Headscale: `http://headscale:8080`
 - Pi-hole: `http://pihole`
 
 See [Tailscale Operator Setup](docs/tailscale-operator.md) for configuration.
@@ -102,7 +100,6 @@ After installation, access services at:
 - Gogs: `http://<minikube-ip>:<nodeport>`
 - Sonarr: `http://<minikube-ip>:<nodeport>`
 - qBittorrent: `http://<minikube-ip>:<nodeport>`
-- Headscale: `http://<minikube-ip>:<nodeport>`
 
 Use `minikube service list` to see exact ports.
 

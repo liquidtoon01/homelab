@@ -5,7 +5,6 @@ storage_class: "standard"
 # Namespace configuration
 gogs_namespace: "git"
 sonarr_namespace: "media"
-headscale_namespace: "headscale"
 qbittorrent_namespace: "media"
 pihole_namespace: "pihole"
 
@@ -19,7 +18,6 @@ tailscale_operator_chart_version: ""
 tailscale_gogs_hostname: "gogs"
 tailscale_gogs_ssh_hostname: "gogs-ssh"
 tailscale_sonarr_hostname: "sonarr"
-tailscale_headscale_hostname: "headscale"
 tailscale_qbittorrent_hostname: "qbittorrent"
 tailscale_pihole_hostname: "pihole"
 tailscale_pihole_dns_hostname: "pihole-dns"
@@ -27,7 +25,6 @@ tailscale_pihole_dns_hostname: "pihole-dns"
 # Helm chart versions (use "latest" or specific version)
 gogs_chart_version: ""
 sonarr_chart_version: ""
-headscale_chart_version: ""
 qbittorrent_chart_version: ""
 pihole_chart_version: ""
 

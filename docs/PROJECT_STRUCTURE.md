@@ -89,7 +89,6 @@ kimsufi/
 │           ├── storage.yml             # Install local-path-provisioner
 │           ├── gitea.yml               # Deploy Gogs
 │           ├── sonarr.yml              # Deploy Sonarr
-│           ├── headscale.yml           # Deploy Headscale
 │           ├── qbittorrent.yml         # Deploy qBittorrent
 │           └── pihole.yml              # Deploy Pi-hole
 │
@@ -248,7 +247,7 @@ Deploys all Helm-based applications.
 - `storage.yml`: Rancher local-path-provisioner (CSI driver)
 - `gogs.yml`: Self-hosted Git service (Gogs)
 - `sonarr.yml`: TV show PVR
-- `headscale.yml`: Self-hosted Tailscale control server
+
 - `qbittorrent.yml`: BitTorrent client
 - `pihole.yml`: Network-wide ad blocker and DNS server
 
