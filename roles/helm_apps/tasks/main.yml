@@ -32,7 +32,7 @@
   ansible.builtin.include_tasks: storage.yml
 
 - name: Deploy Gogs
-  ansible.builtin.include_tasks: gitea.yml
+  ansible.builtin.include_tasks: gogs.yml
 
 - name: Deploy Sonarr
   ansible.builtin.include_tasks: sonarr.yml

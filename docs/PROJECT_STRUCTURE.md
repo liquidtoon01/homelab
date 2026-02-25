@@ -246,7 +246,7 @@ Deploys all Helm-based applications.
 
 **Application Tasks:**
 - `storage.yml`: Rancher local-path-provisioner (CSI driver)
-- `gitea.yml`: Self-hosted Git service (Gogs)
+- `gogs.yml`: Self-hosted Git service (Gogs)
 - `sonarr.yml`: TV show PVR
 - `headscale.yml`: Self-hosted Tailscale control server
 - `qbittorrent.yml`: BitTorrent client
