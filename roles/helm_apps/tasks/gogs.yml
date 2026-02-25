@@ -29,8 +29,6 @@
           svc_annotations:
             tailscale.com/expose: "true"
             tailscale.com/hostname: "{{ tailscale_gogs_hostname | default('gogs') }}"
-      
-      service:
         ssh:
           serviceType: ClusterIP
           port: 22
