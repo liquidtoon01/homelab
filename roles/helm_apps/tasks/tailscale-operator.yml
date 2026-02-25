@@ -5,14 +5,9 @@
   changed_when: false
   become: no
 
-- name: Create Tailscale operator OAuth secret
-  ansible.builtin.shell: |
-    kubectl create secret generic operator-oauth \
-      --namespace tailscale \
-      --from-literal=client-id="{{ tailscale_oauth_client_id }}" \
-      --from-literal=client-secret="{{ tailscale_oauth_client_secret }}" \
-      --dry-run=client -o yaml | kubectl apply -f -
-  changed_when: true
+- name: Delete existing operator-oauth secret (if exists)
+  ansible.builtin.command: kubectl delete secret operator-oauth --namespace tailscale --ignore-not-found=true
+  changed_when: false
   become: no
   when:
     - tailscale_oauth_client_id is defined
