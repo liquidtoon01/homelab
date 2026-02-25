@@ -212,3 +212,25 @@
     - tailscale_status.rc != 0
     - backup_file.stat.exists
   ignore_errors: true
+
+- name: Create backup script for cron
+  ansible.builtin.copy:
+    dest: /usr/local/bin/minikube-backup.sh
+    mode: '0755'
+    content: |
+      #!/bin/bash
+      # Automated Minikube volume backup script
+      
+      cd {{ homelab_dir }} || exit 1
+      ansible-playbook -i inventory/hosts.yml playbooks/backup.yml >> /var/log/minikube-backup.log 2>&1
+
+- name: Schedule automated backups with cron
+  ansible.builtin.cron:
+    name: "Automated Minikube backup"
+    minute: "{{ backup_schedule.split()[0] }}"
+    hour: "{{ backup_schedule.split()[1] }}"
+    day: "{{ backup_schedule.split()[2] }}"
+    month: "{{ backup_schedule.split()[3] }}"
+    weekday: "{{ backup_schedule.split()[4] }}"
+    job: "/usr/local/bin/minikube-backup.sh"
+    user: root

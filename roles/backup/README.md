@@ -8,6 +8,7 @@ This role creates a backup of Minikube volumes and sends them via Tailscale tail
 - Includes BACKUP_INFO.md file with original path and restore instructions
 - Automatically excludes socket files that can't be archived
 - Automatically sends backups via Tailscale taildrop
+- Automated weekly backups via cron (default: Sunday at 2 AM)
 - Sends push notifications on errors via Pushover.net (optional)
 - Cleans up temporary files after successful transfer
 - Displays backup file size and transfer status
@@ -19,6 +20,10 @@ This role creates a backup of Minikube volumes and sends them via Tailscale tail
 **Target Device:** `100.97.131.29` (Tailscale IP)
 
 **Backup Location:** `/tmp/minikube-volumes-backup-<timestamp>.tar.gz`
+
+**Schedule:** Weekly on Sunday at 2 AM (configurable)
+
+**Log File:** `/var/log/minikube-backup.log`
 
 ## Usage
 
@@ -42,6 +47,8 @@ Edit `roles/backup/defaults/main.yml` to customize:
 backup_source_dir: /var/lib/docker/volumes/minikube/_data/hostpath-provisioner
 backup_temp_dir: /tmp
 tailscale_target_ip: "100.97.131.29"
+backup_schedule: "0 2 * * 0"  # Weekly on Sunday at 2 AM (cron format)
+homelab_dir: "{{ ansible_env.HOME }}/homelab"  # Path to homelab directory
 
 # Pushover notifications (optional)
 pushover_enabled: false
@@ -49,6 +56,16 @@ pushover_user_key: ""
 pushover_api_token: ""
 pushover_priority: 0  # -2=lowest, -1=low, 0=normal, 1=high, 2=emergency
 ```
+
+#### Backup Schedule
+
+The `backup_schedule` uses standard cron format: `minute hour day month weekday`
+
+Examples:
+- `0 2 * * 0` - Weekly on Sunday at 2 AM (default)
+- `0 3 * * *` - Daily at 3 AM
+- `0 1 1 * *` - Monthly on the 1st at 1 AM
+- `0 4 * * 6` - Weekly on Saturday at 4 AM
 
 The backup filename is automatically generated with a timestamp in the format: `minikube-volumes-backup-<timestamp>.tar.gz`
 

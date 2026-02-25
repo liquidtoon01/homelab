@@ -429,9 +429,9 @@ Get Pi-hole IP: `minikube service pihole-dns -n pihole --url`
 
 ### 3. Set Up Backups
 
-**Automated Backup:**
+**Automated Backups (Recommended):**
 
-Backup all Minikube volumes and send via Tailscale:
+Backups are automatically scheduled to run weekly on Sunday at 2 AM via cron. To set this up, run the playbook once:
 
 ```bash
 # Using Make
@@ -448,8 +448,15 @@ This will:
 - Send the backup to your Tailscale device (default: 100.97.131.29)
 - Send Pushover notifications on errors (if configured)
 - Clean up temporary files
+- **Set up weekly automated backups via cron**
 
 **Manual Backup:**
+
+To run a backup immediately:
+
+```bash
+make backup
+```
 
 Important data locations:
 - Gogs repositories: Inside Minikube volumes
@@ -458,16 +465,23 @@ Important data locations:
 
 See [docs/applications.md](docs/applications.md) for application-specific backup procedures.
 
-**Configure Backup Target:**
+**Configure Backup Settings:**
 
 Edit `roles/backup/defaults/main.yml` to change:
+- `backup_schedule`: Cron schedule (default: "0 2 * * 0" - Sunday at 2 AM)
 - `tailscale_target_ip`: Target device IP (default: 100.97.131.29)
 - `backup_source_dir`: Source directory to backup
 - `pushover_enabled`: Enable push notifications on errors (default: false)
 - `pushover_user_key`: Your Pushover user key (for notifications)
 - `pushover_api_token`: Your Pushover app token (for notifications)
 
-For Pushover setup, see [roles/backup/README.md](roles/backup/README.md).
+**View Backup Logs:**
+
+```bash
+sudo tail -f /var/log/minikube-backup.log
+```
+
+For detailed Pushover setup instructions, see [roles/backup/README.md](roles/backup/README.md).
 
 ### 4. Security Best Practices
 
