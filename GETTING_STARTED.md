@@ -432,8 +432,10 @@ ansible-playbook -i inventory/hosts.yml playbooks/backup.yml
 
 This will:
 - Create a timestamped tar.gz archive of `/var/lib/docker/volumes/minikube/_data/hostpath-provisioner`
+- Include BACKUP_INFO.md with original path and restore instructions
 - Exclude socket files that cannot be archived
 - Send the backup to your Tailscale device (default: 100.97.131.29)
+- Send Pushover notifications on errors (if configured)
 - Clean up temporary files
 
 **Manual Backup:**
@@ -450,6 +452,11 @@ See [docs/applications.md](docs/applications.md) for application-specific backup
 Edit `roles/backup/defaults/main.yml` to change:
 - `tailscale_target_ip`: Target device IP (default: 100.97.131.29)
 - `backup_source_dir`: Source directory to backup
+- `pushover_enabled`: Enable push notifications on errors (default: false)
+- `pushover_user_key`: Your Pushover user key (for notifications)
+- `pushover_api_token`: Your Pushover app token (for notifications)
+
+For Pushover setup, see [roles/backup/README.md](roles/backup/README.md).
 
 ### 4. Security Best Practices
 

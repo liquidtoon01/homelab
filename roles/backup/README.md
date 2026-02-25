@@ -5,8 +5,10 @@ This role creates a backup of Minikube volumes and sends them via Tailscale tail
 ## Features
 
 - Creates timestamped tar.gz archives of Minikube persistent volumes
+- Includes BACKUP_INFO.md file with original path and restore instructions
 - Automatically excludes socket files that can't be archived
 - Automatically sends backups via Tailscale taildrop
+- Sends push notifications on errors via Pushover.net (optional)
 - Cleans up temporary files after successful transfer
 - Displays backup file size and transfer status
 
@@ -40,9 +42,36 @@ Edit `roles/backup/defaults/main.yml` to customize:
 backup_source_dir: /var/lib/docker/volumes/minikube/_data/hostpath-provisioner
 backup_temp_dir: /tmp
 tailscale_target_ip: "100.97.131.29"
+
+# Pushover notifications (optional)
+pushover_enabled: false
+pushover_user_key: ""
+pushover_api_token: ""
+pushover_priority: 0  # -2=lowest, -1=low, 0=normal, 1=high, 2=emergency
 ```
 
 The backup filename is automatically generated with a timestamp in the format: `minikube-volumes-backup-<timestamp>.tar.gz`
+
+#### Enabling Pushover Notifications
+
+To receive push notifications on backup errors:
+
+1. Sign up at [pushover.net](https://pushover.net)
+2. Create an application to get an API token
+3. Get your user key from the dashboard
+4. Update `roles/backup/defaults/main.yml`:
+
+```yaml
+pushover_enabled: true
+pushover_user_key: "your-user-key-here"
+pushover_api_token: "your-app-token-here"
+pushover_priority: 1  # High priority for errors
+```
+
+Notifications are sent when:
+- Backup tasks fail (critical errors)
+- Backup archive is not created
+- Tailscale is not running (backup created but not sent)
 
 Or override in your playbook:
 
@@ -63,6 +92,7 @@ Or override in your playbook:
 - Tailscale running and authenticated
 - Target device accepting Tailscale file transfers
 - Sufficient disk space in temp directory
+- Pushover.net account (optional, for error notifications)
 
 ## What Gets Backed Up
 

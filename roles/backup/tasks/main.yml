@@ -3,75 +3,188 @@
   ansible.builtin.set_fact:
     backup_filename: "minikube-volumes-backup-{{ ansible_facts.date_time.iso8601_basic_short }}.tar.gz"
 
-- name: Check if backup source directory exists
-  ansible.builtin.stat:
-    path: "{{ backup_source_dir }}"
-  register: backup_source
+- name: Run backup tasks with error handling
+  block:
+    - name: Check if backup source directory exists
+      ansible.builtin.stat:
+        path: "{{ backup_source_dir }}"
+      register: backup_source
 
-- name: Display backup source status
-  ansible.builtin.debug:
-    msg: "Backup source: {{ backup_source_dir }} - Exists: {{ backup_source.stat.exists | default(false) }} - Readable: {{ backup_source.stat.readable | default(false) }}"
+    - name: Display backup source status
+      ansible.builtin.debug:
+        msg: "Backup source: {{ backup_source_dir }} - Exists: {{ backup_source.stat.exists | default(false) }} - Readable: {{ backup_source.stat.readable | default(false) }}"
 
-- name: Fail if backup source does not exist
-  ansible.builtin.fail:
-    msg: "Backup source directory {{ backup_source_dir }} does not exist or is not accessible"
-  when: not backup_source.stat.exists or not backup_source.stat.readable
+    - name: Fail if backup source does not exist
+      ansible.builtin.fail:
+        msg: "Backup source directory {{ backup_source_dir }} does not exist or is not accessible"
+      when: not backup_source.stat.exists or not backup_source.stat.readable
 
-- name: Check if backup source has contents
-  ansible.builtin.find:
-    paths: "{{ backup_source_dir }}"
-    file_type: any
-  register: source_contents
+    - name: Check if backup source has contents
+      ansible.builtin.find:
+        paths: "{{ backup_source_dir }}"
+        file_type: any
+      register: source_contents
 
-- name: Display directory contents count
-  ansible.builtin.debug:
-    msg: "Found {{ source_contents.matched }} items in {{ backup_source_dir }}"
+    - name: Display directory contents count
+      ansible.builtin.debug:
+        msg: "Found {{ source_contents.matched }} items in {{ backup_source_dir }}"
 
-- name: Create backup archive (excluding socket files)
-  ansible.builtin.command:
-    cmd: "tar --exclude='*.sock' --exclude='*-socket' --exclude='ipc-socket' -czf {{ backup_temp_dir }}/{{ backup_filename }} -C {{ backup_source_dir }} ."
-  changed_when: true
-  failed_when: false
-  register: tar_result
+    - name: Create backup info file
+      ansible.builtin.copy:
+    content: |
+      # Minikube Volume Backup Information
 
-- name: Display tar result
-  ansible.builtin.debug:
-    msg: "Backup archive creation: {{ 'succeeded' if tar_result.rc == 0 else 'completed with warnings (rc=' + (tar_result.rc | string) + ')' }}"
+      **Backup Created:** {{ ansible_facts.date_time.iso8601 }}
+      
+      **Original Path:** `{{ backup_source_dir }}`
+      
+      **Hostname:** {{ ansible_facts.hostname }}
+      
+      **Total Items:** {{ source_contents.matched }}
+      
+      ## Archive Contents
+      
+      This archive contains a backup of all Minikube persistent volumes, including:
+      - Application configurations
+      - Database data (PostgreSQL for Gogs)
+      - Git repositories (Gogs)
+      - Downloaded media files (qBittorrent)
+      - Application state (Sonarr, Pi-hole)
+      
+      ## Exclusions
+      
+      The following file types are excluded from the backup:
+      - `*.sock` - Unix domain sockets
+      - `*-socket` - Socket files
+      - `ipc-socket` - Inter-process communication sockets
+      
+      ## Restore Instructions
+      
+      To restore this backup:
+      
+      ```bash
+      # Extract the archive
+      tar -xzf {{ backup_filename }}
+      
+      # Copy contents to original location (requires root)
+      sudo cp -r * {{ backup_source_dir }}/
+      ```
+    dest: "{{ backup_temp_dir }}/BACKUP_INFO.md"
+    mode: '0644'
 
-- name: Check if backup file was created
-  ansible.builtin.stat:
-    path: "{{ backup_temp_dir }}/{{ backup_filename }}"
-  register: backup_file
+    - name: Create backup archive (excluding socket files)
+      ansible.builtin.command:
+        cmd: "tar --exclude='*.sock' --exclude='*-socket' --exclude='ipc-socket' -czf {{ backup_temp_dir }}/{{ backup_filename }} -C {{ backup_temp_dir }} BACKUP_INFO.md -C {{ backup_source_dir }} ."
+      changed_when: true
+      failed_when: false
+      register: tar_result
 
-- name: Display backup file size
-  ansible.builtin.debug:
-    msg: "Backup created: {{ backup_temp_dir }}/{{ backup_filename }} ({{ (backup_file.stat.size / 1024 / 1024) | round(2) }} MB)"
-  when: backup_file.stat.exists
+    - name: Display tar result
+      ansible.builtin.debug:
+        msg: "Backup archive creation: {{ 'succeeded' if tar_result.rc == 0 else 'completed with warnings (rc=' + (tar_result.rc | string) + ')' }}"
 
-- name: Check if Tailscale is running
-  ansible.builtin.command: tailscale status
-  register: tailscale_status
-  changed_when: false
-  failed_when: false
+    - name: Check if backup file was created
+      ansible.builtin.stat:
+        path: "{{ backup_temp_dir }}/{{ backup_filename }}"
+      register: backup_file
 
-- name: Send backup via Tailscale taildrop
-  ansible.builtin.command:
-    cmd: "tailscale file cp {{ backup_temp_dir }}/{{ backup_filename }} {{ tailscale_target_ip }}:"
-  when: tailscale_status.rc == 0
-  changed_when: true
+    - name: Display backup file size
+      ansible.builtin.debug:
+        msg: "Backup created: {{ backup_temp_dir }}/{{ backup_filename }} ({{ (backup_file.stat.size / 1024 / 1024) | round(2) }} MB)"
+      when: backup_file.stat.exists
 
-- name: Display taildrop status
-  ansible.builtin.debug:
-    msg: "Backup sent to {{ tailscale_target_ip }} via Tailscale taildrop"
-  when: tailscale_status.rc == 0
+    - name: Check if Tailscale is running
+      ansible.builtin.command: tailscale status
+      register: tailscale_status
+      changed_when: false
+      failed_when: false
 
-- name: Warning if Tailscale is not running
-  ansible.builtin.debug:
-    msg: "WARNING: Tailscale is not running. Backup created at {{ backup_temp_dir }}/{{ backup_filename }} but not sent."
-  when: tailscale_status.rc != 0
+    - name: Send backup via Tailscale taildrop
+      ansible.builtin.command:
+        cmd: "tailscale file cp {{ backup_temp_dir }}/{{ backup_filename }} {{ tailscale_target_ip }}:"
+      when: tailscale_status.rc == 0
+      changed_when: true
 
-- name: Remove backup file from temp directory
-  ansible.builtin.file:
-    path: "{{ backup_temp_dir }}/{{ backup_filename }}"
-    state: absent
-  when: tailscale_status.rc == 0
+    - name: Display taildrop status
+      ansible.builtin.debug:
+        msg: "Backup sent to {{ tailscale_target_ip }} via Tailscale taildrop"
+      when: tailscale_status.rc == 0
+
+    - name: Warning if Tailscale is not running
+      ansible.builtin.debug:
+        msg: "WARNING: Tailscale is not running. Backup created at {{ backup_temp_dir }}/{{ backup_filename }} but not sent."
+      when: tailscale_status.rc != 0
+
+    - name: Remove backup file from temp directory
+      ansible.builtin.file:
+        path: "{{ backup_temp_dir }}/{{ backup_filename }}"
+        state: absent
+      when: tailscale_status.rc == 0
+
+    - name: Remove backup info file from temp directory
+      ansible.builtin.file:
+        path: "{{ backup_temp_dir }}/BACKUP_INFO.md"
+        state: absent
+
+  rescue:
+    - name: Set error message
+      ansible.builtin.set_fact:
+        backup_error_msg: "Backup failed on {{ ansible_facts.hostname }}: {{ ansible_failed_result.msg | default('Unknown error') }}"
+
+    - name: Display error message
+      ansible.builtin.debug:
+        msg: "{{ backup_error_msg }}"
+
+    - name: Send Pushover notification on error
+      ansible.builtin.uri:
+        url: https://api.pushover.net/1/messages.json
+        method: POST
+        body_format: form-urlencoded
+        body:
+          token: "{{ pushover_api_token }}"
+          user: "{{ pushover_user_key }}"
+          message: "{{ backup_error_msg }}"
+          title: "Backup Error"
+          priority: "{{ pushover_priority }}"
+        status_code: 200
+      when: pushover_enabled | bool
+      ignore_errors: true
+
+    - name: Fail after notification
+      ansible.builtin.fail:
+        msg: "{{ backup_error_msg }}"
+
+- name: Send Pushover notification if backup file was not created
+  ansible.builtin.uri:
+    url: https://api.pushover.net/1/messages.json
+    method: POST
+    body_format: form-urlencoded
+    body:
+      token: "{{ pushover_api_token }}"
+      user: "{{ pushover_user_key }}"
+      message: "Backup archive was not created on {{ ansible_facts.hostname }}. Tar exit code: {{ tar_result.rc }}"
+      title: "Backup Warning"
+      priority: "{{ pushover_priority }}"
+    status_code: 200
+  when:
+    - pushover_enabled | bool
+    - not backup_file.stat.exists
+  ignore_errors: true
+
+- name: Send Pushover notification if Tailscale is not running
+  ansible.builtin.uri:
+    url: https://api.pushover.net/1/messages.json
+    method: POST
+    body_format: form-urlencoded
+    body:
+      token: "{{ pushover_api_token }}"
+      user: "{{ pushover_user_key }}"
+      message: "Tailscale is not running on {{ ansible_facts.hostname }}. Backup created at {{ backup_temp_dir }}/{{ backup_filename }} but not sent to {{ tailscale_target_ip }}."
+      title: "Backup Warning"
+      priority: "{{ pushover_priority }}"
+    status_code: 200
+  when:
+    - pushover_enabled | bool
+    - tailscale_status.rc != 0
+    - backup_file.stat.exists
+  ignore_errors: true
