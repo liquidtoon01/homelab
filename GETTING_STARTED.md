@@ -431,7 +431,8 @@ ansible-playbook -i inventory/hosts.yml playbooks/backup.yml
 ```
 
 This will:
-- Create a timestamped zip archive of `/var/lib/docker/volumes/minikube/_data/hostpath-provisioner`
+- Create a timestamped tar.gz archive of `/var/lib/docker/volumes/minikube/_data/hostpath-provisioner`
+- Exclude socket files that cannot be archived
 - Send the backup to your Tailscale device (default: 100.97.131.29)
 - Clean up temporary files
 

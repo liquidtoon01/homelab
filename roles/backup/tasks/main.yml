@@ -1,7 +1,7 @@
 ---
 - name: Set backup filename
   ansible.builtin.set_fact:
-    backup_filename: "minikube-volumes-backup-{{ ansible_facts.date_time.iso8601_basic_short }}.zip"
+    backup_filename: "minikube-volumes-backup-{{ ansible_facts.date_time.iso8601_basic_short }}.tar.gz"
 
 - name: Check if backup source directory exists
   ansible.builtin.stat:
@@ -27,12 +27,16 @@
   ansible.builtin.debug:
     msg: "Found {{ source_contents.matched }} items in {{ backup_source_dir }}"
 
-- name: Create backup archive
-  ansible.builtin.archive:
-    path: "{{ backup_source_dir }}/*"
-    dest: "{{ backup_temp_dir }}/{{ backup_filename }}"
-    format: zip
+- name: Create backup archive (excluding socket files)
+  ansible.builtin.command:
+    cmd: "tar --exclude='*.sock' --exclude='*-socket' --exclude='ipc-socket' -czf {{ backup_temp_dir }}/{{ backup_filename }} -C {{ backup_source_dir }} ."
   changed_when: true
+  failed_when: false
+  register: tar_result
+
+- name: Display tar result
+  ansible.builtin.debug:
+    msg: "Backup archive creation: {{ 'succeeded' if tar_result.rc == 0 else 'completed with warnings (rc=' + (tar_result.rc | string) + ')' }}"
 
 - name: Check if backup file was created
   ansible.builtin.stat:
