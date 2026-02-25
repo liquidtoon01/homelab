@@ -21,37 +21,22 @@
     content: |
       persistence:
         enabled: true
-        size: 10Gi
-        storageClass: {{ storage_class }}
       
       service:
-        type: LoadBalancer
-        httpPort: 3000
-        sshPort: 22
-        annotations:
-          tailscale.com/expose: "true"
-          tailscale.com/hostname: "{{ tailscale_gogs_hostname | default('gogs') }}"
+        http:
+          type: ClusterIP
+          port: 3000
+          annotations:
+            tailscale.com/expose: "true"
+            tailscale.com/hostname: "{{ tailscale_gogs_hostname | default('gogs') }}"
       
-      serviceSsh:
-        type: LoadBalancer
-        annotations:
-          tailscale.com/expose: "true"
-          tailscale.com/hostname: "{{ tailscale_gogs_ssh_hostname | default('gogs-ssh') }}"
-      
-      resources:
-        limits:
-          cpu: 1000m
-          memory: 1Gi
-        requests:
-          cpu: 200m
-          memory: 512Mi
-      
-      gogsConfig:
-        server:
-          DOMAIN: "{{ tailscale_gogs_hostname | default('gogs') }}"
-          ROOT_URL: "http://{{ tailscale_gogs_hostname | default('gogs') }}:3000/"
-          DISABLE_SSH: false
-          SSH_PORT: 22
+      service:
+        ssh:
+          serviceType: ClusterIP
+          port: 22
+          svc_annotations:
+            tailscale.com/expose: "true"
+            tailscale.com/hostname: "{{ tailscale_gogs_ssh_hostname | default('gogs-ssh') }}"
 
 - name: Deploy Gogs using Helm
   ansible.builtin.command: >
