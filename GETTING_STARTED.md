@@ -153,20 +153,20 @@ make status
 - Scheduled system updates
 
 **Applications:**
-- Gogs (Git server) - http://gogs
-- Sonarr (TV shows) - http://sonarr:8989
-- qBittorrent (Downloads) - http://qbittorrent:8080
-- Pi-hole (DNS/Ad blocker) - http://pihole
+- Gogs (Git server)
+- Sonarr (TV shows)
+- qBittorrent (Downloads)
+- Pi-hole (DNS/Ad blocker)
 
 ## Accessing Applications
 
 ### Via Tailscale (Recommended)
 
 Connect to your Tailnet, then access:
-- Gogs: `http://gogs`
+- Gogs: `http://gogs:3000`
 - Sonarr: `http://sonarr:8989`
 - qBittorrent: `http://qbittorrent:8080`
-- Pi-hole: `http://pihole`
+- Pi-hole: `http://pihole/admin`
 
 ### Via NodePort (Fallback)
 

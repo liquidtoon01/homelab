@@ -54,9 +54,20 @@ Gogs requires initial setup on first run. Navigate to the web interface and comp
 ### Configuration
 
 Gogs is configured with:
-- SQLite database (no external DB needed)
-- Persistent storage (10Gi PVC)
-- SSH and HTTP services exposed
+- PostgreSQL database (in-pod, persistent)
+- Persistent storage (10Gi for Gogs data, 5Gi for PostgreSQL)
+- SSH and HTTP services exposed via Tailscale LoadBalancer
+
+### Database Setup
+
+During first-run installation wizard, use these database settings:
+- **Database Type**: PostgreSQL
+- **Host**: localhost:5432
+- **User**: postgres
+- **Password**: (auto-generated, stored in Kubernetes secret)
+- **Database Name**: gogs
+
+The PostgreSQL database runs in the same pod as Gogs and is automatically configured.
 
 ### Management
 

@@ -19,9 +19,22 @@
   ansible.builtin.copy:
     dest: /tmp/gogs-values.yaml
     content: |
+      # PostgreSQL database configuration
+      dbType: postgres
+      useInPodPostgres: true
+      
+      inPodPostgres:
+        postgresDatabase: gogs
+      
+      # Persistent storage
       persistence:
         enabled: true
+        gogsSize: 10Gi
+        postgresSize: 5Gi
+        storageClass: {{ storage_class }}
+        accessMode: ReadWriteOnce
       
+      # Service configuration
       service:
         http:
           type: ClusterIP
@@ -30,11 +43,28 @@
             tailscale.com/expose: "true"
             tailscale.com/hostname: "{{ tailscale_gogs_hostname | default('gogs') }}"
         ssh:
-          serviceType: ClusterIP
+          type: ClusterIP
           port: 22
           svc_annotations:
             tailscale.com/expose: "true"
             tailscale.com/hostname: "{{ tailscale_gogs_ssh_hostname | default('gogs-ssh') }}"
+      
+      # Resource limits
+      resources:
+        gogs:
+          requests:
+            cpu: 500m
+            memory: 512Mi
+          limits:
+            cpu: 1000m
+            memory: 2Gi
+        postgres:
+          requests:
+            cpu: 200m
+            memory: 256Mi
+          limits:
+            cpu: 500m
+            memory: 1Gi
 
 - name: Deploy Gogs using Helm
   ansible.builtin.command: >
