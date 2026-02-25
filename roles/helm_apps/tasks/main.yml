@@ -7,6 +7,7 @@
     - { name: "k8s-at-home", url: "https://k8s-at-home.com/charts/" }
     - { name: "gabe565", url: "https://charts.gabe565.com" }
     - { name: "mojo2600", url: "https://mojo2600.github.io/pihole-kubernetes/" }
+    - { name: "pree", url: "https://pree.github.io/helm-charts/" }
   register: helm_repo_add_result
   changed_when: false
   failed_when: false
