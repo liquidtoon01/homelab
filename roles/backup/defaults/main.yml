@@ -1,6 +1,5 @@
 ---
 # Backup configuration
 backup_source_dir: /var/lib/docker/volumes/minikube/_data/hostpath-provisioner
-backup_filename: "minikube-volumes-backup-{{ ansible_date_time.iso8601_basic_short }}.zip"
 backup_temp_dir: /tmp
 tailscale_target_ip: "100.97.131.29"

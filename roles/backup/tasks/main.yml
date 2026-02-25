@@ -1,18 +1,37 @@
 ---
+- name: Set backup filename
+  ansible.builtin.set_fact:
+    backup_filename: "minikube-volumes-backup-{{ ansible_facts.date_time.iso8601_basic_short }}.zip"
+
 - name: Check if backup source directory exists
   ansible.builtin.stat:
     path: "{{ backup_source_dir }}"
   register: backup_source
 
+- name: Display backup source status
+  ansible.builtin.debug:
+    msg: "Backup source: {{ backup_source_dir }} - Exists: {{ backup_source.stat.exists | default(false) }} - Readable: {{ backup_source.stat.readable | default(false) }}"
+
 - name: Fail if backup source does not exist
   ansible.builtin.fail:
-    msg: "Backup source directory {{ backup_source_dir }} does not exist"
-  when: not backup_source.stat.exists
+    msg: "Backup source directory {{ backup_source_dir }} does not exist or is not accessible"
+  when: not backup_source.stat.exists or not backup_source.stat.readable
+
+- name: Check if backup source has contents
+  ansible.builtin.find:
+    paths: "{{ backup_source_dir }}"
+    file_type: any
+  register: source_contents
+
+- name: Display directory contents count
+  ansible.builtin.debug:
+    msg: "Found {{ source_contents.matched }} items in {{ backup_source_dir }}"
 
 - name: Create backup archive
-  ansible.builtin.command:
-    cmd: "zip -r {{ backup_temp_dir }}/{{ backup_filename }} ."
-    chdir: "{{ backup_source_dir }}"
+  ansible.builtin.archive:
+    path: "{{ backup_source_dir }}/*"
+    dest: "{{ backup_temp_dir }}/{{ backup_filename }}"
+    format: zip
   changed_when: true
 
 - name: Check if backup file was created
