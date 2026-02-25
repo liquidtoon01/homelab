@@ -5,45 +5,33 @@
   changed_when: false
   become: no
 
-- name: Create Headscale manifest
+- name: Add Headscale Helm repository
+  ansible.builtin.command: helm repo add headscale https://helm.headscale.net/
+  changed_when: false
+  become: no
+
+- name: Update Helm repositories
+  ansible.builtin.command: helm repo update
+  changed_when: false
+  become: no
+
+- name: Create Headscale Helm values file
   ansible.builtin.copy:
-    dest: /tmp/headscale-manifest.yaml
+    dest: /tmp/headscale-values.yaml
     content: |
-      ---
-      apiVersion: v1
-      kind: PersistentVolumeClaim
-      metadata:
-        name: headscale-data
-        namespace: {{ headscale_namespace }}
-      spec:
-        accessModes:
-          - ReadWriteOnce
-        storageClassName: {{ storage_class }}
-        resources:
-          requests:
-            storage: 1Gi
-      ---
-      apiVersion: v1
-      kind: ConfigMap
-      metadata:
-        name: headscale-config
-        namespace: {{ headscale_namespace }}
-      data:
-        config.yaml: |
-          server_url: http://headscale:8080
-          listen_addr: 0.0.0.0:8080
-          metrics_listen_addr: 0.0.0.0:9090
-          grpc_listen_addr: 0.0.0.0:50443
-          grpc_allow_insecure: false
-          
-          private_key_path: /var/lib/headscale/private.key
-          noise:
-            private_key_path: /var/lib/headscale/noise_private.key
-          
-          prefixes:
-            v4: 100.64.0.0/10
-            v6: fd7a:115c:a1e0::/48
-          
+      persistence:
+        enabled: true
+        size: 1Gi
+        storageClass: {{ storage_class }}
+      
+      service:
+        type: ClusterIP
+        annotations:
+          tailscale.com/expose: "true"
+          tailscale.com/hostname: "{{ tailscale_headscale_hostname | default('headscale') }}"
+
+      headscale:
+        config:             
           derp:
             server:
               enabled: false
@@ -53,92 +41,30 @@
             update_frequency: 24h
           
           disable_check_updates: false
-          ephemeral_node_inactivity_timeout: 30m
-          database:
-            type: sqlite3
-            sqlite:
-              path: /var/lib/headscale/db.sqlite
-          
-          log:
-            format: text
-            level: info
-          
-          acme_url: https://acme-v02.api.letsencrypt.org/directory
-          acme_email: ""
           
           dns:
             magic_dns: true
             base_domain: headscale.local
             nameservers:
               global:
-                - 1.1.1.1
-                - 8.8.8.8
-            search_domains: []
+                - 9.9.9.9
+                - 149.112.112.112
             override_local_dns: true
-      ---
-      apiVersion: apps/v1
-      kind: Deployment
-      metadata:
-        name: headscale
-        namespace: {{ headscale_namespace }}
-        labels:
-          app: headscale
-      spec:
-        replicas: 1
-        selector:
-          matchLabels:
-            app: headscale
-        template:
-          metadata:
-            labels:
-              app: headscale
-          spec:
-            containers:
-            - name: headscale
-              image: headscale/headscale:latest
-              command: ["headscale", "serve"]
-              ports:
-              - containerPort: 8080
-                name: http
-              - containerPort: 9090
-                name: metrics
-              volumeMounts:
-              - name: config
-                mountPath: /etc/headscale
-              - name: data
-                mountPath: /var/lib/headscale
-            volumes:
-            - name: config
-              configMap:
-                name: headscale-config
-            - name: data
-              persistentVolumeClaim:
-                claimName: headscale-data
-      ---
-      apiVersion: v1
-      kind: Service
-      metadata:
-        name: headscale
-        namespace: {{ headscale_namespace }}
-        annotations:
-          tailscale.com/expose: "true"
-          tailscale.com/hostname: "{{ tailscale_headscale_hostname | default('headscale') }}"
-      spec:
-        type: LoadBalancer
-        selector:
-          app: headscale
-        ports:
-        - name: http
-          port: 8080
-          targetPort: 8080
+      
+      resources:
+        limits:
+          cpu: 500m
+          memory: 512Mi
+        requests:
+          cpu: 100m
+          memory: 128Mi
 
-- name: Deploy Headscale using kubectl
-  ansible.builtin.command: kubectl apply -f /tmp/headscale-manifest.yaml
+- name: Deploy Headscale using Helm
+  ansible.builtin.command: >
+    helm upgrade --install headscale headscale/headscale
+    --namespace {{ headscale_namespace }}
+    --values /tmp/headscale-values.yaml
+    {{ '--version ' + headscale_chart_version if headscale_chart_version else '' }}
+    --wait
   changed_when: true
   become: no
-
-- name: Wait for Headscale to be ready
-  ansible.builtin.command: kubectl -n {{ headscale_namespace }} wait --for=condition=available deployment/headscale --timeout=300s
-  changed_when: false
-  become: no
-  failed_when: false

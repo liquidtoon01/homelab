@@ -147,7 +147,7 @@ sudo systemctl restart sshd
 
 2. Check internet connectivity:
    ```bash
-   ping -c 4 8.8.8.8
+   ping -c 4 9.9.9.9
    ```
 
 3. Verify Ubuntu version:

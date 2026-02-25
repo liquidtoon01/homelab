@@ -26,7 +26,7 @@
         http:
           type: ClusterIP
           port: 3000
-          annotations:
+          svc_annotations:
             tailscale.com/expose: "true"
             tailscale.com/hostname: "{{ tailscale_gogs_hostname | default('gogs') }}"
       

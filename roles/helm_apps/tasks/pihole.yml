@@ -10,13 +10,13 @@
     dest: /tmp/pihole-values.yaml
     content: |
       serviceDns:
-        type: LoadBalancer
+        type: ClusterIP
         annotations:
           tailscale.com/expose: "true"
           tailscale.com/hostname: "{{ tailscale_pihole_dns_hostname | default('pihole-dns') }}"
       
       serviceWeb:
-        type: LoadBalancer
+        type: ClusterIP
         http:
           enabled: true
           port: 80
@@ -33,8 +33,8 @@
       
       adminPassword: "{{ pihole_admin_password }}"
       
-      DNS1: "8.8.8.8"
-      DNS2: "8.8.4.4"
+      DNS1: "9.9.9.9"
+      DNS2: "149.112.112.112"
       
       doh:
         enabled: false

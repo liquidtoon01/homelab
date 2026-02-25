@@ -306,7 +306,7 @@ Pi-hole is configured with:
 - Web interface on port 80
 - DNS service (NodePort)
 - Persistent storage (1Gi PVC)
-- Upstream DNS: Google DNS (8.8.8.8, 8.8.4.4)
+- Upstream DNS: Quad DNS (9.9.9.9, 149.112.112.112)
 - Resource limits: 500m CPU, 512Mi RAM
 
 ### First-Time Setup
