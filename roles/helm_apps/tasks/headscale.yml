@@ -61,7 +61,7 @@
 
 - name: Deploy Headscale using Helm
   ansible.builtin.command: >
-    helm upgrade --install headscale headscale/headscale
+    helm upgrade --install headscale oci://codeberg.org/wrenix/helm-charts/headscale
     --namespace {{ headscale_namespace }}
     --values /tmp/headscale-values.yaml
     {{ '--version ' + headscale_chart_version if headscale_chart_version else '' }}
