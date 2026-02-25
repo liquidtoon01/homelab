@@ -36,6 +36,7 @@
     --cpus={{ minikube_cpus }}
     --memory={{ minikube_memory }}
     --disk-size={{ minikube_disk_size }}
+    --mount-string="/mnt:/tmp/hostpath-provisioner"
   when: minikube_status.rc != 0
   become: no
   environment:
