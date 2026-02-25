@@ -62,7 +62,7 @@ sudo systemctl restart sshd
 
 ### Applications (15-30 min)
 ✅ CSI Storage Driver (local-path-provisioner)  
-✅ Gitea (Git server) - `http://gitea`  
+✅ Gogs (Git server) - `http://gogs`  
 ✅ Sonarr (TV shows) - `http://sonarr:8989`  
 ✅ Headscale (Tailscale controller) - `http://headscale:8080`  
 ✅ qBittorrent (Downloads) - `http://qbittorrent:8080`  
@@ -72,7 +72,7 @@ sudo systemctl restart sshd
 ### Primary: Tailscale (Recommended)
 
 Connect to your Tailnet on your device, then access applications via:
-- Gitea: `http://gitea`
+- Gogs: `http://gogs`
 - Sonarr: `http://sonarr:8989`
 - qBittorrent: `http://qbittorrent:8080`
 - Headscale: `http://headscale:8080`
@@ -99,7 +99,7 @@ minikube service <service-name> -n <namespace>
 ### Example Access URLs
 
 After installation, access services at:
-- Gitea: `http://<minikube-ip>:<nodeport>`
+- Gogs: `http://<minikube-ip>:<nodeport>`
 - Sonarr: `http://<minikube-ip>:<nodeport>`
 - qBittorrent: `http://<minikube-ip>:<nodeport>`
 - Headscale: `http://<minikube-ip>:<nodeport>`
@@ -108,9 +108,9 @@ Use `minikube service list` to see exact ports.
 
 ## Default Credentials
 
-**Gitea:**
-- Username: `gitea_admin` (configurable)
-- Password: `changeme` (CHANGE THIS!)
+**Gogs:**
+- Username: `gogs` (set during first run)
+- Password: Set during first run
 
 **qBittorrent:**
 - Username: `admin`
@@ -132,7 +132,7 @@ make services
 make check
 
 # View logs for a service
-make logs-gitea
+make logs-gogs
 make logs-sonarr
 
 # Restart Minikube
@@ -150,7 +150,7 @@ kubectl rollout restart deployment -n <namespace> <deployment-name>
 kubectl get pods --all-namespaces
 
 # See specific namespace
-kubectl get pods -n gitea
+kubectl get pods -n git
 kubectl get pods -n media
 
 # View logs
@@ -208,9 +208,9 @@ ls -la
 ## Backup Important Data
 
 ```bash
-# Backup Gitea
-kubectl exec -n gitea <pod-name> -- tar czf /tmp/backup.tar.gz /data
-kubectl cp gitea/<pod-name>:/tmp/backup.tar.gz ./gitea-backup.tar.gz
+# Backup Gogs
+kubectl exec -n git <pod-name> -- tar czf /tmp/backup.tar.gz /data
+kubectl cp git/<pod-name>:/tmp/backup.tar.gz ./gogs-backup.tar.gz
 ```
 
 ## Updating Applications
@@ -222,8 +222,8 @@ helm repo update
 # Upgrade a specific application
 helm upgrade -n <namespace> <release-name> <repo>/<chart>
 
-# Example: Upgrade Gitea
-helm upgrade -n gitea gitea gitea/gitea
+# Example: Upgrade Gogs
+helm upgrade -n git gogs keyporttech/gogs
 ```
 
 ## Security Best Practices

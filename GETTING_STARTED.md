@@ -92,7 +92,6 @@ tailscale_oauth_client_id: ""
 tailscale_oauth_client_secret: ""
 
 # Application passwords (CHANGE THESE!)
-gitea_admin_password: "changeme"
 pihole_admin_password: "changeme"
 ```
 
@@ -153,7 +152,7 @@ This will:
 - Infrastructure components (Docker, Minikube, kubectl, Helm, Tailscale)
 - Tailscale Operator (for secure ingress)
 - Storage provisioner (local-path)
-- Gitea (Git server)
+- Gogs (Git server)
 - Sonarr (TV shows)
 - Headscale (Tailscale controller)
 - qBittorrent (Downloads)
@@ -194,8 +193,8 @@ Once the Tailscale operator is configured and deployed, all applications are acc
 
 | Application | Tailscale URL | Description |
 |-------------|---------------|-------------|
-| Gitea | `http://gitea` | Git web interface |
-| Gitea SSH | `ssh://gitea-ssh` | Git SSH access |
+| Gogs | `http://gogs` | Git web interface |
+| Gogs SSH | `ssh://gogs-ssh` | Git SSH access |
 | Sonarr | `http://sonarr:8989` | TV show manager |
 | Headscale | `http://headscale:8080` | Tailscale control server |
 | qBittorrent | `http://qbittorrent:8080` | BitTorrent client |
@@ -220,8 +219,8 @@ make services
 ### Access Individual Services (Fallback)
 
 ```bash
-# Open Gitea in browser
-minikube service gitea-http -n gitea
+# Open Gogs in browser
+minikube service gogs-http -n git
 
 # Open Pi-hole
 minikube service pihole-web -n pihole
@@ -229,9 +228,9 @@ minikube service pihole-web -n pihole
 
 ### Default Credentials
 
-**Gitea:**
-- Username: `gitea_admin` (or as configured)
-- Password: `changeme` (CHANGE THIS!)
+**Gogs:**
+- Username: Set during first run
+- Password: Set during first run
 
 **qBittorrent:**
 - Username: `admin`
@@ -249,7 +248,6 @@ minikube service pihole-web -n pihole
 **Change all default passwords:**
 ```yaml
 # Edit group_vars/all.yml
-gitea_admin_password: "strong-password-here"
 pihole_admin_password: "strong-password-here"
 
 # Re-run applications playbook
@@ -303,7 +301,7 @@ See [Applications Guide](docs/applications.md#pi-hole) for details.
 ### 4. Set Up Backups
 
 Important data to backup:
-- Gitea repositories
+- Gogs repositories
 - Pi-hole configuration
 
 See [Applications Guide](docs/applications.md) for backup procedures.
@@ -316,11 +314,11 @@ See [Applications Guide](docs/applications.md) for backup procedures.
 
 ```bash
 # Use make shortcuts
-make logs-gitea
+make logs-gogs
 make logs-pihole
 
 # Or directly
-kubectl logs -n gitea -l app.kubernetes.io/name=gitea --tail=100
+kubectl logs -n git -l app=gogs --tail=100
 ```
 
 ### Restart an Application
@@ -340,7 +338,7 @@ kubectl rollout restart deployment -n <namespace> <deployment-name>
 helm repo update
 
 # Upgrade specific app
-helm upgrade -n gitea gitea gitea/gitea
+helm upgrade -n git gogs keyporttech/gogs
 
 # Or upgrade all
 helm list --all-namespaces | awk 'NR>1 {print $1, $2}' | while read name ns; do
@@ -514,7 +512,7 @@ If you encounter issues:
 You now have a complete self-hosted infrastructure running:
 
 ✅ Kubernetes cluster (Minikube)  
-✅ Git server (Gitea)  
+✅ Git server (Gogs)  
 ✅ Media management (Sonarr, qBittorrent)  
 ✅ Ad blocking (Pi-hole)  
 ✅ VPN (Tailscale/Headscale)  

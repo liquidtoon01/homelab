@@ -400,25 +400,25 @@ sudo systemctl restart sshd
 
 ## Application Issues
 
-### Gitea Not Accessible
+### Gogs Not Accessible
 
 **Solutions**:
 
-1. Check Gitea pod status:
+1. Check Gogs pod status:
    ```bash
-   kubectl get pods -n gitea
-   kubectl logs -n gitea -l app.kubernetes.io/name=gitea
+   kubectl get pods -n git
+   kubectl logs -n git -l app=gogs
    ```
 
 2. Verify service:
    ```bash
-   kubectl get svc -n gitea
-   minikube service gitea-http -n gitea
+   kubectl get svc -n git
+   minikube service gogs-http -n git
    ```
 
 3. Check PVC is bound:
    ```bash
-   kubectl get pvc -n gitea
+   kubectl get pvc -n git
    ```
 
 ### qBittorrent Won't Start

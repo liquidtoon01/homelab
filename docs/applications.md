@@ -8,7 +8,7 @@ All applications are accessible via Tailscale hostnames. See [Tailscale Operator
 
 | Application | Purpose | Default Namespace | Tailscale Hostname | Fallback Port |
 |-------------|---------|-------------------|-------------------|---------------|
-| Gitea | Self-hosted Git service | gitea | `http://gitea` | 3000 |
+| Gogs | Self-hosted Git service | git | `http://gogs` | 3000 |
 | Sonarr | TV show PVR | media | `http://sonarr:8989` | 8989 |
 | Headscale | Self-hosted Tailscale control | headscale | `http://headscale:8080` | 8080 |
 | qBittorrent | BitTorrent client | media | `http://qbittorrent:8080` | 8080 |
@@ -18,64 +18,58 @@ All applications are accessible via Tailscale hostnames. See [Tailscale Operator
 
 ---
 
-## Gitea
+## Gogs
 
 **Purpose**: Self-hosted Git service with web interface.
 
-**Helm Chart**: https://artifacthub.io/packages/helm/gitea/gitea
+**Helm Chart**: https://artifacthub.io/packages/helm/keyporttech/gogs
 
-**Namespace**: `gitea`
+**Namespace**: `git`
 
 ### Access
 
 **Primary (Tailscale):**
 ```bash
 # Web interface
-http://gitea
+http://gogs
 
 # SSH access
-ssh://gitea-ssh
+ssh://gogs-ssh
 ```
 
 **Fallback (NodePort):**
 ```bash
 # Get access URL
-minikube service gitea-http -n gitea
+minikube service gogs-http -n git
 
 # Or get the NodePort
-kubectl get svc -n gitea
+kubectl get svc -n git
 ```
 
 ### Default Credentials
 
-Configure in `group_vars/all.yml`:
-```yaml
-gitea_admin_username: "gitea_admin"
-gitea_admin_password: "changeme"  # CHANGE THIS!
-gitea_admin_email: "admin@example.com"
-```
+Gogs requires initial setup on first run. Navigate to the web interface and complete the installation wizard.
 
-**⚠️ IMPORTANT**: Change the default password immediately after first login!
+**⚠️ IMPORTANT**: Choose a strong admin password during setup!
 
 ### Configuration
 
-Gitea is configured with:
+Gogs is configured with:
 - SQLite database (no external DB needed)
-- In-memory session and cache
 - Persistent storage (10Gi PVC)
 - SSH and HTTP services exposed
 
 ### Management
 
 ```bash
-# View Gitea pods
-kubectl get pods -n gitea
+# View Gogs pods
+kubectl get pods -n git
 
 # View logs
-kubectl logs -n gitea -l app.kubernetes.io/name=gitea
+kubectl logs -n git -l app=gogs
 
-# Access Gitea config
-kubectl exec -it -n gitea <pod-name> -- /bin/sh
+# Access Gogs config
+kubectl exec -it -n git <pod-name> -- /bin/sh
 ```
 
 ### Persistent Data
@@ -85,9 +79,9 @@ Location: `/data` inside the pod, backed by PVC
 ### Backup
 
 ```bash
-# Backup Gitea data
-kubectl exec -n gitea <pod-name> -- tar czf /tmp/gitea-backup.tar.gz /data
-kubectl cp gitea/<pod-name>:/tmp/gitea-backup.tar.gz ./gitea-backup.tar.gz
+# Backup Gogs data
+kubectl exec -n git <pod-name> -- tar czf /tmp/gogs-backup.tar.gz /data
+kubectl cp git/<pod-name>:/tmp/gogs-backup.tar.gz ./gogs-backup.tar.gz
 ```
 
 ---

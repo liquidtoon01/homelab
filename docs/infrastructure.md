@@ -222,7 +222,7 @@ Create OAuth client at: https://login.tailscale.com/admin/settings/oauth
 **How It Works**:
 - Watches for services with Tailscale annotations
 - Creates a Tailscale device for each annotated LoadBalancer service
-- Assigns MagicDNS hostnames (e.g., `http://gitea`, `http://sonarr`)
+- Assigns MagicDNS hostnames (e.g., `http://gogs`, `http://sonarr`)
 - Routes traffic from your Tailnet to the Kubernetes service
 
 **Service Annotations**:
@@ -262,7 +262,7 @@ kubectl rollout restart deploy/tailscale-operator -n tailscale
 
 **Accessing Applications via Tailscale**:
 Once configured, access all applications via Tailscale hostnames:
-- `http://gitea`
+- `http://gogs`
 - `http://sonarr:8989`
 - `http://qbittorrent:8080`
 - `http://pihole`

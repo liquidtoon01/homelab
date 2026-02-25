@@ -3,7 +3,7 @@
 storage_class: "standard"
 
 # Namespace configuration
-gitea_namespace: "gitea"
+gogs_namespace: "git"
 sonarr_namespace: "media"
 headscale_namespace: "headscale"
 qbittorrent_namespace: "media"
@@ -16,8 +16,8 @@ tailscale_operator_hostname: "ts-operator"
 tailscale_operator_chart_version: ""
 
 # Tailscale Ingress hostnames (override in group_vars/all.yml)
-tailscale_gitea_hostname: "gitea"
-tailscale_gitea_ssh_hostname: "gitea-ssh"
+tailscale_gogs_hostname: "gogs"
+tailscale_gogs_ssh_hostname: "gogs-ssh"
 tailscale_sonarr_hostname: "sonarr"
 tailscale_headscale_hostname: "headscale"
 tailscale_qbittorrent_hostname: "qbittorrent"
@@ -25,17 +25,12 @@ tailscale_pihole_hostname: "pihole"
 tailscale_pihole_dns_hostname: "pihole-dns"
 
 # Helm chart versions (use "latest" or specific version)
-gitea_chart_version: ""
+gogs_chart_version: ""
 sonarr_chart_version: ""
 headscale_chart_version: ""
 qbittorrent_chart_version: ""
 pihole_chart_version: ""
 
 # Application configurations
-gitea_admin_username: "gitea_admin"
-gitea_admin_password: "{{ vault_gitea_admin_password | default('changeme') }}"
-gitea_admin_email: "admin@example.com"
-gitea_secret_key: "{{ vault_gitea_secret_key | default('change-this-to-a-unique-string') }}"
-
 pihole_admin_password: "{{ vault_pihole_admin_password | default('changeme') }}"
 

@@ -87,7 +87,7 @@ kimsufi/
 │           ├── main.yml                # Main task file (orchestrates deployment)
 │           ├── tailscale-operator.yml  # Deploy Tailscale operator
 │           ├── storage.yml             # Install local-path-provisioner
-│           ├── gitea.yml               # Deploy Gitea
+│           ├── gitea.yml               # Deploy Gogs
 │           ├── sonarr.yml              # Deploy Sonarr
 │           ├── headscale.yml           # Deploy Headscale
 │           ├── qbittorrent.yml         # Deploy qBittorrent
@@ -246,7 +246,7 @@ Deploys all Helm-based applications.
 
 **Application Tasks:**
 - `storage.yml`: Rancher local-path-provisioner (CSI driver)
-- `gitea.yml`: Self-hosted Git service
+- `gitea.yml`: Self-hosted Git service (Gogs)
 - `sonarr.yml`: TV show PVR
 - `headscale.yml`: Self-hosted Tailscale control server
 - `qbittorrent.yml`: BitTorrent client
@@ -335,7 +335,6 @@ make services         # List service URLs
 - `minikube_cpus`: Adjust based on server capacity
 - `minikube_memory`: Increase for better performance
 - `tailscale_auth_key`: Your Tailscale auth key
-- `gitea_admin_password`: Change from default
 - Application namespaces: Organize as needed
 
 ### Inventory Customization

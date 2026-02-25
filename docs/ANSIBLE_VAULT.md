@@ -47,8 +47,6 @@ vault_tailscale_oauth_client_id: "kXXXXXXXXXXXXXXXX"
 vault_tailscale_oauth_client_secret: "tskey-client-XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
 
 # Application passwords
-vault_gitea_admin_password: "your-strong-password"
-vault_gitea_secret_key: "generate-a-long-random-string"
 vault_pihole_admin_password: "your-strong-password"
 ```
 

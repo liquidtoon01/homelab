@@ -1,0 +1,64 @@
+---
+- name: Create Gogs namespace
+  ansible.builtin.command: kubectl create namespace {{ gogs_namespace }}
+  failed_when: false
+  changed_when: false
+  become: no
+
+- name: Add Gogs Helm repository
+  ansible.builtin.command: helm repo add keyporttech https://keyporttech.github.io/helm-charts/
+  changed_when: false
+  become: no
+
+- name: Update Helm repositories
+  ansible.builtin.command: helm repo update
+  changed_when: false
+  become: no
+
+- name: Create Gogs Helm values file
+  ansible.builtin.copy:
+    dest: /tmp/gogs-values.yaml
+    content: |
+      persistence:
+        enabled: true
+        size: 10Gi
+        storageClass: {{ storage_class }}
+      
+      service:
+        type: LoadBalancer
+        httpPort: 3000
+        sshPort: 22
+        annotations:
+          tailscale.com/expose: "true"
+          tailscale.com/hostname: "{{ tailscale_gogs_hostname | default('gogs') }}"
+      
+      serviceSsh:
+        type: LoadBalancer
+        annotations:
+          tailscale.com/expose: "true"
+          tailscale.com/hostname: "{{ tailscale_gogs_ssh_hostname | default('gogs-ssh') }}"
+      
+      resources:
+        limits:
+          cpu: 1000m
+          memory: 1Gi
+        requests:
+          cpu: 200m
+          memory: 512Mi
+      
+      gogsConfig:
+        server:
+          DOMAIN: "{{ tailscale_gogs_hostname | default('gogs') }}"
+          ROOT_URL: "http://{{ tailscale_gogs_hostname | default('gogs') }}:3000/"
+          DISABLE_SSH: false
+          SSH_PORT: 22
+
+- name: Deploy Gogs using Helm
+  ansible.builtin.command: >
+    helm upgrade --install gogs keyporttech/gogs
+    --namespace {{ gogs_namespace }}
+    --values /tmp/gogs-values.yaml
+    {{ '--version ' + gogs_chart_version if gogs_chart_version else '' }}
+    --wait
+  changed_when: true
+  become: no

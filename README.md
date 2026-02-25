@@ -13,7 +13,7 @@ This setup installs and configures:
 - **Scheduled apt updates** - Automated system updates
 
 And deploys the following applications via Helm:
-- **Gitea** - Self-hosted Git service (accessible via Tailscale at `http://gitea`)
+- **Gogs** - Self-hosted Git service (accessible via Tailscale at `http://gogs`)
 - **Sonarr** - PVR for TV shows (accessible via Tailscale at `http://sonarr`)
 - **Headscale** - Self-hosted Tailscale control server (accessible via Tailscale at `http://headscale`)
 - **qBittorrent** - BitTorrent client (accessible via Tailscale at `http://qbittorrent`)

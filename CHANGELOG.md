@@ -11,7 +11,7 @@ All notable changes to this project will be documented in this file.
   - Useful for editing configuration files on the server
 - **Tailscale Operator** for Kubernetes ingress:
   - Deployed via Helm chart from official Tailscale repository
-  - All applications now accessible via Tailscale hostnames (e.g., `http://gitea`, `http://sonarr:8989`)
+  - All applications now accessible via Tailscale hostnames (e.g., `http://gogs`, `http://sonarr:8989`)
   - Automatic Tailscale device creation for each service
   - MagicDNS integration for easy access across Tailnet
   - OAuth client authentication for Kubernetes operator
@@ -61,7 +61,7 @@ All notable changes to this project will be documented in this file.
   - Scheduled apt updates with unattended-upgrades
 - Ansible role for Helm applications:
   - Rancher local-path-provisioner for storage
-  - Gitea for self-hosted Git
+  - Gogs for self-hosted Git
   - Sonarr for TV show management
   - Headscale for self-hosted Tailscale control
   - Immich for photo/video backup
@@ -95,7 +95,7 @@ Planned features for future releases:
 - [x] ~~Ingress controller with SSL/TLS~~ (Replaced with Tailscale Operator - simpler and more secure)
 - [ ] Monitoring stack (Prometheus + Grafana)
 - [ ] Automated backup solution
-- [ ] CI/CD pipeline with Gitea Actions
+- [ ] CI/CD pipeline with Gogs webhooks
 - [ ] Additional media applications (Radarr, Lidarr)
 - [ ] Network file sharing (NFS/Samba)
 - [ ] VPN gateway (WireGuard)

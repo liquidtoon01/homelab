@@ -118,7 +118,7 @@ ansible-galaxy collection install community.general
 
 The following ports are used (all on localhost/Minikube by default):
 
-- **Gitea**: 3000 (HTTP), 22 (SSH)
+- **Gogs**: 3000 (HTTP), 22 (SSH)
 - **Sonarr**: 8989
 - **qBittorrent**: 8080
 - **Headscale**: 8080
@@ -135,7 +135,7 @@ After installation, you should:
    - Review changes in `/etc/ssh/sshd_config`
 
 2. **Change default passwords**:
-   - Gitea admin password
+   - Gogs admin password
    - qBittorrent admin password
    - Pi-hole admin password
 

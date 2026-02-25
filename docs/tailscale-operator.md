@@ -32,7 +32,7 @@ tailscale_oauth_client_secret: "YOUR_CLIENT_SECRET"
 tailscale_operator_hostname: "ts-operator"
 
 # Customize Tailscale hostnames (optional)
-tailscale_gitea_hostname: "gitea"
+tailscale_gogs_hostname: "gogs"
 tailscale_sonarr_hostname: "sonarr"
 tailscale_headscale_hostname: "headscale"
 tailscale_qbittorrent_hostname: "qbittorrent"
@@ -59,7 +59,7 @@ service:
 
 This tells the operator to:
 - Expose the service to your Tailnet
-- Assign it a hostname (e.g., `http://gitea`, `http://sonarr`)
+- Assign it a hostname (e.g., `http://gogs`, `http://sonarr`)
 
 ## Accessing Applications
 
@@ -67,8 +67,8 @@ Once deployed, you can access applications from any device on your Tailnet:
 
 | Application | Tailscale URL | Description |
 |-------------|---------------|-------------|
-| Gitea | `http://gitea` | Git web interface |
-| Gitea SSH | `ssh://gitea-ssh` | Git SSH access |
+| Gogs | `http://gogs` | Git web interface |
+| Gogs SSH | `ssh://gogs-ssh` | Git SSH access |
 | Sonarr | `http://sonarr:8989` | TV show PVR |
 | Headscale | `http://headscale:8080` | Tailscale control server |
 | qBittorrent | `http://qbittorrent:8080` | BitTorrent client |
@@ -127,7 +127,7 @@ ansible-playbook -i inventory/hosts.yml playbooks/applications.yml
 If you have hostname conflicts, customize the hostnames in `group_vars/all.yml`:
 
 ```yaml
-tailscale_gitea_hostname: "k8s-gitea"
+tailscale_gogs_hostname: "k8s-gogs"
 tailscale_sonarr_hostname: "k8s-sonarr"
 # etc...
 ```

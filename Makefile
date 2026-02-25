@@ -68,15 +68,15 @@ clean-minikube: ## Delete Minikube cluster
 
 clean-apps: ## Uninstall all applications
 	@echo "Uninstalling applications..."
-	helm uninstall gitea -n gitea || true
+	helm uninstall gogs -n git || true
 	helm uninstall sonarr -n media || true
 	helm uninstall qbittorrent -n media || true
 	helm uninstall headscale -n headscale || true
 	helm uninstall pihole -n pihole || true
-	kubectl delete namespace gitea media headscale pihole || true
+	kubectl delete namespace git media headscale pihole || true
 
-logs-gitea: ## Show Gitea logs
-	kubectl logs -n gitea -l app.kubernetes.io/name=gitea --tail=100
+logs-gogs: ## Show Gogs logs
+	kubectl logs -n git -l app=gogs --tail=100
 
 logs-sonarr: ## Show Sonarr logs
 	kubectl logs -n media -l app.kubernetes.io/name=sonarr --tail=100

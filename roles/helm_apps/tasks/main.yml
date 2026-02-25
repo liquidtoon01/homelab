@@ -3,7 +3,7 @@
   ansible.builtin.command: "helm repo add {{ item.name }} {{ item.url }}"
   loop:
     - { name: "tailscale", url: "https://pkgs.tailscale.com/helmcharts" }
-    - { name: "gitea", url: "https://dl.gitea.com/charts/" }
+    - { name: "keyporttech", url: "https://keyporttech.github.io/helm-charts/" }
     - { name: "k8s-at-home", url: "https://k8s-at-home.com/charts/" }
     - { name: "gabe565", url: "https://charts.gabe565.com" }
     - { name: "mojo2600", url: "https://mojo2600.github.io/pihole-kubernetes/" }
@@ -31,7 +31,7 @@
 - name: Configure Minikube storage provisioner
   ansible.builtin.include_tasks: storage.yml
 
-- name: Deploy Gitea
+- name: Deploy Gogs
   ansible.builtin.include_tasks: gitea.yml
 
 - name: Deploy Sonarr
