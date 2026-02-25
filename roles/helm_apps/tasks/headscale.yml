@@ -6,7 +6,7 @@
   become: no
 
 - name: Add Headscale Helm repository
-  ansible.builtin.command: helm repo add headscale https://helm.headscale.net/
+  ansible.builtin.command: helm pull oci://codeberg.org/wrenix/helm-charts/headscale
   changed_when: false
   become: no
 
