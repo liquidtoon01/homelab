@@ -21,7 +21,7 @@ All applications are accessible via Tailscale hostnames. See [Tailscale Operator
 
 **Purpose**: Self-hosted Git service with web interface.
 
-**Helm Chart**: https://artifacthub.io/packages/helm/keyporttech/gogs
+**Deployment**: Kubernetes StatefulSets with PostgreSQL database
 
 **Namespace**: `git`
 
@@ -30,19 +30,19 @@ All applications are accessible via Tailscale hostnames. See [Tailscale Operator
 **Primary (Tailscale):**
 ```bash
 # Web interface
-http://gogs
+http://gogs:3000
 
 # SSH access
-ssh://gogs-ssh
+ssh://gogs-ssh:22
 ```
 
 **Fallback (NodePort):**
 ```bash
-# Get access URL
-minikube service gogs-http -n git
-
-# Or get the NodePort
+# Get access URLs
 kubectl get svc -n git
+
+# Or use port forwarding
+kubectl port-forward -n git svc/gogs-http 3000:3000
 ```
 
 ### Default Credentials
@@ -53,21 +53,26 @@ Gogs requires initial setup on first run. Navigate to the web interface and comp
 
 ### Configuration
 
-Gogs is configured with:
-- PostgreSQL database (in-pod, persistent)
+Gogs is deployed with:
+- PostgreSQL database (separate StatefulSet)
 - Persistent storage (10Gi for Gogs data, 5Gi for PostgreSQL)
-- SSH and HTTP services exposed via Tailscale LoadBalancer
+- HTTP and SSH services exposed via Tailscale LoadBalancer
 
 ### Database Setup
 
 During first-run installation wizard, use these database settings:
-- **Database Type**: PostgreSQL
-- **Host**: localhost:5432
-- **User**: postgres
-- **Password**: (auto-generated, stored in Kubernetes secret)
-- **Database Name**: gogs
 
-The PostgreSQL database runs in the same pod as Gogs and is automatically configured.
+- **Database Type**: PostgreSQL
+- **Host**: `postgres.git.svc.cluster.local:5432`
+- **User**: `gogs`
+- **Password**: `gogspassword`
+- **Database Name**: `gogs`
+
+**⚠️ SECURITY NOTE**: Change the database password in the ConfigMap before deploying to production:
+```bash
+kubectl edit configmap postgres-config -n git
+# Change db_pass value, then restart both PostgreSQL and Gogs pods
+```
 
 ### Management
 

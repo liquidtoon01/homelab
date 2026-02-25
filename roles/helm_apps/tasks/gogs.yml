@@ -5,73 +5,253 @@
   changed_when: false
   become: no
 
-- name: Add Gogs Helm repository
-  ansible.builtin.command: helm repo add keyporttech https://keyporttech.github.io/helm-charts/
-  changed_when: false
-  become: no
-
-- name: Update Helm repositories
-  ansible.builtin.command: helm repo update
-  changed_when: false
-  become: no
-
-- name: Create Gogs Helm values file
+- name: Create Gogs manifest
   ansible.builtin.copy:
-    dest: /tmp/gogs-values.yaml
+    dest: /tmp/gogs-manifest.yaml
     content: |
-      # PostgreSQL database configuration
-      dbType: postgres
-      useInPodPostgres: true
-      
-      inPodPostgres:
-        postgresDatabase: gogs
-      
-      # Persistent storage
-      persistence:
-        enabled: true
-        gogsSize: 10Gi
-        postgresSize: 5Gi
-        storageClass: {{ storage_class }}
-        accessMode: ReadWriteOnce
-      
-      # Service configuration
-      service:
-        http:
-          type: ClusterIP
+      ---
+      # PostgreSQL ConfigMap
+      apiVersion: v1
+      kind: ConfigMap
+      metadata:
+        name: postgres-config
+        namespace: {{ gogs_namespace }}
+      data:
+        db_name: gogs
+        db_user: gogs
+        db_pass: gogspassword
+        data_dir: /var/lib/postgresql/data/pgdata
+      ---
+      # Gogs ConfigMap
+      apiVersion: v1
+      kind: ConfigMap
+      metadata:
+        name: gogs-config
+        namespace: {{ gogs_namespace }}
+      data:
+        app_name: "Gogs"
+        db_type: postgres
+        db_host: "postgres.{{ gogs_namespace }}.svc.cluster.local:5432"
+        db_name: gogs
+        db_user: gogs
+        db_pass: gogspassword # changeme
+      ---
+      # PostgreSQL Service
+      apiVersion: v1
+      kind: Service
+      metadata:
+        name: postgres
+        namespace: {{ gogs_namespace }}
+        labels:
+          app: postgres
+      spec:
+        ports:
+        - name: postgres
+          protocol: TCP
+          port: 5432
+          targetPort: 5432
+        selector:
+          app: postgres
+        type: ClusterIP
+      ---
+      # PostgreSQL StatefulSet
+      apiVersion: apps/v1
+      kind: StatefulSet
+      metadata:
+        name: postgres
+        namespace: {{ gogs_namespace }}
+        labels:
+          app: postgres
+      spec:
+        serviceName: postgres
+        replicas: 1
+        selector:
+          matchLabels:
+            app: postgres
+        template:
+          metadata:
+            labels:
+              app: postgres
+          spec:
+            containers:
+            - name: postgres
+              image: postgres:14
+              ports:
+              - name: postgres
+                containerPort: 5432
+              env:
+              - name: PGDATA
+                valueFrom:
+                  configMapKeyRef:
+                    name: postgres-config
+                    key: data_dir
+              - name: POSTGRES_DB
+                valueFrom:
+                  configMapKeyRef:
+                    name: postgres-config
+                    key: db_name
+              - name: POSTGRES_USER
+                valueFrom:
+                  configMapKeyRef:
+                    name: postgres-config
+                    key: db_user
+              - name: POSTGRES_PASSWORD
+                valueFrom:
+                  configMapKeyRef:
+                    name: postgres-config
+                    key: db_pass
+              livenessProbe:
+                exec:
+                  command:
+                  - pg_isready
+                  - -U
+                  - gogs
+                initialDelaySeconds: 30
+                timeoutSeconds: 5
+              readinessProbe:
+                exec:
+                  command:
+                  - pg_isready
+                  - -U
+                  - gogs
+                initialDelaySeconds: 5
+                timeoutSeconds: 5
+              resources:
+                requests:
+                  cpu: 200m
+                  memory: 256Mi
+                limits:
+                  cpu: 500m
+                  memory: 1Gi
+              volumeMounts:
+              - name: postgres-data
+                mountPath: /var/lib/postgresql/data
+        volumeClaimTemplates:
+        - metadata:
+            name: postgres-data
+          spec:
+            accessModes: ["ReadWriteOnce"]
+            storageClassName: {{ storage_class }}
+            resources:
+              requests:
+                storage: 5Gi
+      ---
+      # Gogs HTTP Service
+      apiVersion: v1
+      kind: Service
+      metadata:
+        name: gogs-http
+        namespace: {{ gogs_namespace }}
+        labels:
+          app: gogs
+        annotations:
+          tailscale.com/expose: "true"
+          tailscale.com/hostname: "{{ tailscale_gogs_hostname | default('gogs') }}"
+      spec:
+        type: ClusterIP
+        ports:
+        - name: http
+          protocol: TCP
           port: 3000
-          svc_annotations:
-            tailscale.com/expose: "true"
-            tailscale.com/hostname: "{{ tailscale_gogs_hostname | default('gogs') }}"
-        ssh:
-          type: ClusterIP
+          targetPort: 3000
+        selector:
+          app: gogs
+      ---
+      # Gogs SSH Service
+      apiVersion: v1
+      kind: Service
+      metadata:
+        name: gogs-ssh
+        namespace: {{ gogs_namespace }}
+        labels:
+          app: gogs
+        annotations:
+          tailscale.com/expose: "true"
+          tailscale.com/hostname: "{{ tailscale_gogs_ssh_hostname | default('gogs-ssh') }}"
+      spec:
+        type: ClusterIP
+        ports:
+        - name: ssh
+          protocol: TCP
           port: 22
-          svc_annotations:
-            tailscale.com/expose: "true"
-            tailscale.com/hostname: "{{ tailscale_gogs_ssh_hostname | default('gogs-ssh') }}"
-      
-      # Resource limits
-      resources:
-        gogs:
-          requests:
-            cpu: 500m
-            memory: 512Mi
-          limits:
-            cpu: 1000m
-            memory: 2Gi
-        postgres:
-          requests:
-            cpu: 200m
-            memory: 256Mi
-          limits:
-            cpu: 500m
-            memory: 1Gi
+          targetPort: 22
+        selector:
+          app: gogs
+      ---
+      # Gogs StatefulSet
+      apiVersion: apps/v1
+      kind: StatefulSet
+      metadata:
+        name: gogs
+        namespace: {{ gogs_namespace }}
+        labels:
+          app: gogs
+      spec:
+        serviceName: gogs
+        replicas: 1
+        selector:
+          matchLabels:
+            app: gogs
+        template:
+          metadata:
+            labels:
+              app: gogs
+          spec:
+            containers:
+            - name: gogs
+              image: gogs/gogs:latest
+              ports:
+              - name: ssh
+                containerPort: 22
+              - name: http
+                containerPort: 3000
+              env:
+              - name: SOCAT_LINK
+                value: "false"
+              livenessProbe:
+                tcpSocket:
+                  port: 3000
+                initialDelaySeconds: 60
+                timeoutSeconds: 5
+              readinessProbe:
+                tcpSocket:
+                  port: 3000
+                initialDelaySeconds: 30
+                timeoutSeconds: 5
+              resources:
+                requests:
+                  cpu: 500m
+                  memory: 512Mi
+                limits:
+                  cpu: 1000m
+                  memory: 2Gi
+              volumeMounts:
+              - name: gogs-data
+                mountPath: /data
+        volumeClaimTemplates:
+        - metadata:
+            name: gogs-data
+          spec:
+            accessModes: ["ReadWriteOnce"]
+            storageClassName: {{ storage_class }}
+            resources:
+              requests:
+                storage: 10Gi
+  become: no
 
-- name: Deploy Gogs using Helm
-  ansible.builtin.command: >
-    helm upgrade --install gogs keyporttech/gogs
-    --namespace {{ gogs_namespace }}
-    --values /tmp/gogs-values.yaml
-    {{ '--version ' + gogs_chart_version if gogs_chart_version else '' }}
-    --wait
+- name: Deploy Gogs using kubectl
+  ansible.builtin.command: kubectl apply -f /tmp/gogs-manifest.yaml
   changed_when: true
   become: no
+
+- name: Wait for PostgreSQL to be ready
+  ansible.builtin.command: kubectl -n {{ gogs_namespace }} wait --for=condition=ready pod -l app=postgres --timeout=300s
+  changed_when: false
+  become: no
+  failed_when: false
+
+- name: Wait for Gogs to be ready
+  ansible.builtin.command: kubectl -n {{ gogs_namespace }} wait --for=condition=ready pod -l app=gogs --timeout=300s
+  changed_when: false
+  become: no
+  failed_when: false
