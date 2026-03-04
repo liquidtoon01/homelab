@@ -36,6 +36,9 @@
       DNS1: "9.9.9.9"
       DNS2: "149.112.112.112"
       
+      adlists:
+        - https://www.github.developerdan.com/hosts/lists/ads-and-tracking-extended.txt
+      
       doh:
         enabled: false
       

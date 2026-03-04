@@ -53,6 +53,11 @@
     content: |
       env:
         TZ: UTC
+        # qBittorrent connection details (configure in Sonarr UI under Settings > Download Clients)
+        # Host: qbittorrent.{{ qbittorrent_namespace }}.svc.cluster.local
+        # Port: 8080
+        # Username: admin
+        # Category: tv-sonarr
       
       service:
         main:
@@ -72,6 +77,12 @@
           enabled: true
           existingClaim: sonarr-media
           mountPath: /media
+        downloads:
+          enabled: true
+          mountPath: /downloads
+          storageClass: {{ storage_class }}
+          accessMode: ReadWriteMany
+          size: 10Gi
       
       resources:
         limits:
