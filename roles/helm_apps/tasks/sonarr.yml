@@ -46,7 +46,7 @@
         persistentVolumeReclaimPolicy: Retain
         nfs:
           server: plex-jellyfin.tail44dd7.ts.net
-          path: d/Videos/Shows
+          path: /d/Videos/Shows
       ---
       apiVersion: v1
       kind: PersistentVolumeClaim
