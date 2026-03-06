@@ -133,8 +133,9 @@
           labels:
             k8s-app: kube-dns
         spec:
-          serviceAccountName: coredns
+          hostNetwork: true
           dnsPolicy: Default
+          serviceAccountName: coredns
           tolerations:
           - key: "CriticalAddonsOnly"
             operator: "Exists"
