@@ -57,7 +57,6 @@
   ansible.builtin.command: >
     sudo mkdir -p /mnt/media-shows && 
     sudo mount -t cifs //plex-jellyfin.tail44dd7.ts.net/Videos/Shows /mnt/media-shows 
-    -o username={{ sonarr_smb_username }},password={{ sonarr_smb_password }},uid=1000,gid=1000
   failed_when: false
   changed_when: false
   become: no
