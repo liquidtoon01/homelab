@@ -136,7 +136,7 @@ ansible-playbook -i inventory/hosts.yml playbooks/site.yml
 Installs:
 - Infrastructure: Docker, kubectl, Helm, Minikube, Tailscale, Tailscale Operator
 - Storage: local-path-provisioner
-- Applications: Gogs, Sonarr, qBittorrent, Jackett, Crontab UI, Pi-hole
+- Applications: Gogs, Sonarr, qBittorrent, Jackett, Pi-hole
 
 ### 6. Verify Installation
 
@@ -168,7 +168,6 @@ make status
 - Sonarr (TV shows PVR)
 - qBittorrent (BitTorrent client)
 - Jackett (Torrent indexer proxy)
-- Crontab UI (Host cron manager)
 - Pi-hole (DNS/Ad blocker)
 
 ## Accessing Applications
@@ -180,7 +179,6 @@ Connect to your Tailnet, then access:
 - Sonarr: `http://sonarr:8989`
 - qBittorrent: `http://qbittorrent:8080`
 - Jackett: `http://jackett:9117`
-- Crontab UI: `http://cron:8000`
 - Pi-hole: `http://pihole/admin`
 
 ### Via NodePort (Fallback)
@@ -205,8 +203,6 @@ minikube service gogs-http -n git
 - Password: `adminadmin` (CHANGE THIS)
 
 **Jackett:** No authentication by default (configure in UI if needed)
-
-**Crontab UI:** No authentication by default (secured via Tailscale network)
 
 **Pi-hole:**
 - Password: `changeme` (CHANGE THIS)
@@ -286,7 +282,6 @@ kubectl logs -n git -l app=gogs --tail=100 -f
 kubectl logs -n media -l app=sonarr --tail=100 -f
 kubectl logs -n media -l app.kubernetes.io/name=qbittorrent --tail=100 -f
 kubectl logs -n media -l app.kubernetes.io/name=jackett --tail=100 -f
-kubectl logs -n admin -l app.kubernetes.io/name=crontab-ui --tail=100 -f
 ```
 
 ### Restart Application
@@ -307,7 +302,6 @@ helm upgrade -n git gogs keyporttech/gogs
 helm upgrade -n media sonarr pree/sonarr
 helm upgrade -n media qbittorrent gabe565/qbittorrent
 helm upgrade -n media jackett k8s-at-home/jackett
-helm upgrade -n admin crontab-ui roles/helm_apps/files/crontab-ui  # Local chart
 helm upgrade -n pihole pihole mojo2600/pihole
 ```
 

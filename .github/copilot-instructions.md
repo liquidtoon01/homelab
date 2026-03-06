@@ -147,7 +147,7 @@ This is an **Ansible-based Infrastructure as Code project** for provisioning and
 **What it is:** Custom Helm charts for applications without suitable public charts.
 
 **Example:**
-- `roles/helm_apps/files/crontab-ui/`
+- `roles/helm_apps/files/custom-chart/` (if needed)
 
 **Key Conventions:**
 - Standard structure: Chart.yaml, values.yaml, templates/, .helmignore, README.md
@@ -163,8 +163,8 @@ This is an **Ansible-based Infrastructure as Code project** for provisioning and
 **What it is:** Kubernetes manifest templates for Helm charts.
 
 **Examples:**
-- `roles/helm_apps/files/crontab-ui/templates/deployment.yaml`
-- `roles/helm_apps/files/crontab-ui/templates/service.yaml`
+- `roles/helm_apps/files/custom-chart/templates/deployment.yaml`
+- `roles/helm_apps/files/custom-chart/templates/service.yaml`
 
 **Key Conventions:**
 - Helper function calls: `{{ include "chart-name.fullname" . }}`

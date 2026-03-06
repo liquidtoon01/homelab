@@ -42,43 +42,6 @@
   environment:
     CHANGE_MINIKUBE_NONE_USER: "true"
 
-- name: Create minikube mount service for host cron directory
-  ansible.builtin.copy:
-    dest: /etc/systemd/system/minikube-mount-cron.service
-    content: |
-      [Unit]
-      Description=Minikube mount for host cron directory
-      After=network.target
-      Wants=network.target
-
-      [Service]
-      Type=simple
-      User={{ ansible_user_id }}
-      Group={{ ansible_user_id }}
-      Environment="HOME=/home/{{ ansible_user_id }}"
-      Environment="KUBECONFIG=/home/{{ ansible_user_id }}/.kube/config"
-      Environment="MINIKUBE_HOME=/home/{{ ansible_user_id }}"
-      WorkingDirectory=/home/{{ ansible_user_id }}
-      ExecStartPre=/bin/sh -c 'while ! {{ minikube_install_path }}/minikube status >/dev/null 2>&1; do sleep 2; done'
-      ExecStart={{ minikube_install_path }}/minikube mount {{ minikube_host_cron_path }}:/host-cron-real --gid=0 --uid=0
-      Restart=on-failure
-      RestartSec=10
-      StandardOutput=journal
-      StandardError=journal
-
-      [Install]
-      WantedBy=multi-user.target
-    mode: '0644'
-  when: minikube_mount_host_cron | default(false)
-
-- name: Enable and start minikube mount service
-  ansible.builtin.systemd:
-    name: minikube-mount-cron
-    state: started
-    enabled: yes
-    daemon_reload: yes
-  when: minikube_mount_host_cron | default(false)
-
 - name: Enable Minikube addons
   ansible.builtin.command: "minikube addons enable {{ item }}"
   loop:

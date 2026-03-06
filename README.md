@@ -17,7 +17,6 @@ And deploys the following applications via Helm:
 - **Sonarr** - PVR for TV shows (accessible via Tailscale at `http://sonarr`)
 - **qBittorrent** - BitTorrent client (accessible via Tailscale at `http://qbittorrent`)
 - **Jackett** - Torrent indexer proxy (accessible via Tailscale at `http://jackett`)
-- **Crontab UI** - Web-based cron job manager for host (accessible via Tailscale at `http://cron`)
 - **Pi-hole** - Network-wide ad blocker and DNS server (accessible via Tailscale at `http://pihole`)
 
 ## Quick Start
