@@ -136,7 +136,7 @@ ansible-playbook -i inventory/hosts.yml playbooks/site.yml
 Installs:
 - Infrastructure: Docker, kubectl, Helm, Minikube, Tailscale, Tailscale Operator
 - Storage: local-path-provisioner
-- Applications: Gogs, Sonarr, qBittorrent, Pi-hole
+- Applications: Gogs, Sonarr, qBittorrent, Jackett, Crontab UI, Pi-hole
 
 ### 6. Verify Installation
 
@@ -165,8 +165,10 @@ make status
 
 **Applications:**
 - Gogs (Git server)
-- Sonarr (TV shows)
-- qBittorrent (Downloads)
+- Sonarr (TV shows PVR)
+- qBittorrent (BitTorrent client)
+- Jackett (Torrent indexer proxy)
+- Crontab UI (Host cron manager)
 - Pi-hole (DNS/Ad blocker)
 
 ## Accessing Applications
@@ -177,6 +179,8 @@ Connect to your Tailnet, then access:
 - Gogs: `http://gogs:3000`
 - Sonarr: `http://sonarr:8989`
 - qBittorrent: `http://qbittorrent:8080`
+- Jackett: `http://jackett:9117`
+- Crontab UI: `http://cron:8000`
 - Pi-hole: `http://pihole/admin`
 
 ### Via NodePort (Fallback)
@@ -200,6 +204,10 @@ minikube service gogs-http -n git
 - Username: `admin`
 - Password: `adminadmin` (CHANGE THIS)
 
+**Jackett:** No authentication by default (configure in UI if needed)
+
+**Crontab UI:** No authentication by default (secured via Tailscale network)
+
 **Pi-hole:**
 - Password: `changeme` (CHANGE THIS)
 
@@ -213,6 +221,8 @@ make services        # View service URLs
 make check          # Check for issues
 make logs-gogs      # View Gogs logs
 make logs-sonarr    # View Sonarr logs
+make logs-qbittorrent # View qBittorrent logs
+make logs-jackett   # View Jackett logs
 ```
 
 ### Kubectl Commands
@@ -274,6 +284,9 @@ helm upgrade -n <namespace> <release-name> <repo>/<chart>
 ```bash
 kubectl logs -n git -l app=gogs --tail=100 -f
 kubectl logs -n media -l app=sonarr --tail=100 -f
+kubectl logs -n media -l app.kubernetes.io/name=qbittorrent --tail=100 -f
+kubectl logs -n media -l app.kubernetes.io/name=jackett --tail=100 -f
+kubectl logs -n admin -l app.kubernetes.io/name=crontab-ui --tail=100 -f
 ```
 
 ### Restart Application
@@ -293,6 +306,9 @@ helm repo update
 helm upgrade -n git gogs keyporttech/gogs
 helm upgrade -n media sonarr pree/sonarr
 helm upgrade -n media qbittorrent gabe565/qbittorrent
+helm upgrade -n media jackett k8s-at-home/jackett
+helm upgrade -n admin crontab-ui roles/helm_apps/files/crontab-ui  # Local chart
+helm upgrade -n pihole pihole mojo2600/pihole
 ```
 
 ### Remote kubectl Access
@@ -505,4 +521,4 @@ For detailed Pushover setup instructions, see [roles/backup/README.md](roles/bac
 
 ---
 
-Complete self-hosted infrastructure with Kubernetes, Git server, media management, ad blocking, and VPN.
+Complete self-hosted infrastructure with Kubernetes, Git server, media management (Sonarr, qBittorrent, Jackett), host cron management, ad blocking, and VPN.

@@ -119,8 +119,11 @@ ansible-galaxy collection install community.general
 The following ports are used (all on localhost/Minikube by default):
 
 - **Gogs**: 3000 (HTTP), 22 (SSH)
-- **Sonarr**: 8989
-- **qBittorrent**: 8080
+- **Sonarr**: 8989 (HTTP)
+- **qBittorrent**: 8080 (HTTP), 51413 (BitTorrent)
+- **Jackett**: 9117 (HTTP)
+- **Crontab UI**: 8000 (HTTP)
+- **Pi-hole**: 80 (HTTP), 53 (DNS)
 - **Kubernetes API**: 8443 (Minikube)
 
 ## Post-Installation
