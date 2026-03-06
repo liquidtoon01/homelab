@@ -64,7 +64,7 @@
           enabled: true
           type: nfs
           server: plex-jellyfin.tail44dd7.ts.net
-          path: /Videos/Shows
+          path: d/Videos/Shows
           mountPath: /media
         downloads:
           enabled: true
