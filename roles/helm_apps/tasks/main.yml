@@ -40,8 +40,8 @@
 - name: Deploy qBittorrent
   ansible.builtin.include_tasks: qbittorrent.yml
 
-- name: Deploy Prowlarr
-  ansible.builtin.include_tasks: prowlarr.yml
+- name: Deploy Jackett
+  ansible.builtin.include_tasks: jackett.yml
 
 - name: Deploy Pi-hole
   ansible.builtin.include_tasks: pihole.yml

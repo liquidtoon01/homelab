@@ -6,7 +6,7 @@ storage_class: "standard"
 gogs_namespace: "git"
 sonarr_namespace: "media"
 qbittorrent_namespace: "media"
-prowlarr_namespace: "media"
+jackett_namespace: "media"
 pihole_namespace: "pihole"
 
 # Tailscale Operator configuration (override in group_vars/all.yml)
@@ -20,7 +20,7 @@ tailscale_gogs_hostname: "gogs"
 tailscale_gogs_ssh_hostname: "gogs-ssh"
 tailscale_sonarr_hostname: "sonarr"
 tailscale_qbittorrent_hostname: "qbittorrent"
-tailscale_prowlarr_hostname: "prowlarr"
+tailscale_jackett_hostname: "jackett"
 tailscale_pihole_hostname: "pihole"
 tailscale_pihole_dns_hostname: "pihole-dns"
 
@@ -28,7 +28,7 @@ tailscale_pihole_dns_hostname: "pihole-dns"
 gogs_chart_version: ""
 sonarr_chart_version: ""
 qbittorrent_chart_version: ""
-prowlarr_chart_version: ""
+jackett_chart_version: ""
 pihole_chart_version: ""
 
 # Application configurations

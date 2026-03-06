@@ -1,0 +1,57 @@
+---
+- name: Create Jackett namespace
+  ansible.builtin.command: kubectl create namespace {{ jackett_namespace }}
+  failed_when: false
+  changed_when: false
+  become: no
+
+- name: Update Helm repositories
+  ansible.builtin.command: helm repo update
+  changed_when: false
+  become: no
+
+- name: Create Jackett Helm values file
+  ansible.builtin.copy:
+    dest: /tmp/jackett-values.yaml
+    content: |
+      env:
+        TZ: UTC
+        # After deployment, add Jackett to Sonarr:
+        # Settings > Indexers > Add > Torznab > Custom
+        # - URL: http://jackett.{{ jackett_namespace }}.svc.cluster.local:9117/api/v2.0/indexers/INDEXER/results/torznab/
+        # - API Key: Get from Jackett web UI
+      
+      service:
+        main:
+          type: ClusterIP
+          annotations:
+            tailscale.com/expose: "true"
+            tailscale.com/hostname: "{{ tailscale_jackett_hostname | default('jackett') }}"
+          ports:
+            http:
+              port: 9117
+      
+      persistence:
+        config:
+          enabled: true
+          storageClass: {{ storage_class }}
+          accessMode: ReadWriteOnce
+          size: 1Gi
+      
+      resources:
+        limits:
+          cpu: 500m
+          memory: 1Gi
+        requests:
+          cpu: 100m
+          memory: 256Mi
+
+- name: Deploy Jackett using Helm
+  ansible.builtin.command: >
+    helm upgrade --install jackett k8s-at-home/jackett
+    --namespace {{ jackett_namespace }}
+    --values /tmp/jackett-values.yaml
+    {{ '--version ' + jackett_chart_version if jackett_chart_version else '' }}
+    --wait
+  changed_when: true
+  become: no
