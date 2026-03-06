@@ -21,13 +21,13 @@ tailscale:
 # Host access configuration
 hostAccess:
   enabled: true
-  cronPath: /etc/crontabs
+  cronPath: /var/spool/cron/crontabs
 
 # Environment variables
 env:
   HOST: "0.0.0.0"
   PORT: "8000"
-  CRON_PATH: "/host-cron"
+  CRON_PATH: "/host-cron-real"
 
 # Persistence configuration
 persistence:

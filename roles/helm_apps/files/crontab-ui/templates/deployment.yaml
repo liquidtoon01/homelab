@@ -37,7 +37,8 @@ spec:
         volumeMounts:
         {{- if .Values.hostAccess.enabled }}
         - name: host-cron
-          mountPath: /host-cron
+          mountPath: /host-cron-real
+          readOnly: false
         {{- end }}
         {{- if .Values.persistence.enabled }}
         - name: data
@@ -51,7 +52,7 @@ spec:
       {{- if .Values.hostAccess.enabled }}
       - name: host-cron
         hostPath:
-          path: {{ .Values.hostAccess.cronPath }}
+          path: /host-cron-real
           type: DirectoryOrCreate
       {{- end }}
       {{- if .Values.persistence.enabled }}

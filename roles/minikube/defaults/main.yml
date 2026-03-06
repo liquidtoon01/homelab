@@ -5,3 +5,5 @@ minikube_cpus: 2
 minikube_memory: "4096"
 minikube_disk_size: "20g"
 minikube_install_path: "/usr/local/bin"
+minikube_mount_host_cron: true
+minikube_host_cron_path: "/var/spool/cron/crontabs"
