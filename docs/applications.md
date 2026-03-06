@@ -9,8 +9,10 @@ All applications are accessible via Tailscale hostnames. See [Tailscale Operator
 | Application | Purpose | Default Namespace | Tailscale Hostname | Fallback Port |
 |-------------|---------|-------------------|-------------------|---------------|
 | Gogs | Self-hosted Git service | git | `http://gogs` | 3000 |
-| Sonarr | TV show PVR | media | `http://sonarr:8989` | 8989 |
-| qBittorrent | BitTorrent client | media | `http://qbittorrent:8080` | 8080 |
+| qBittorrent | BitTorrent client | media | `http://qbittorrent` | 8080 |
+| Sonarr | TV show PVR | media | `http://sonarr` | 8989 |
+| Jackett | Torrent indexer proxy | media | `http://jackett` | 9117 |
+| Crontab UI | Host cron job manager | admin | `http://cron` | 8000 |
 | Pi-hole | Network-wide ad blocker & DNS | pihole | `http://pihole` | 80 |
 
 **Note:** The Tailscale hostnames work automatically when connected to your Tailnet. Fallback ports are available via `minikube service` commands.
@@ -101,56 +103,6 @@ kubectl cp git/<pod-name>:/tmp/gogs-backup.tar.gz ./gogs-backup.tar.gz
 
 ---
 
-## Sonarr
-
-**Purpose**: PVR for managing and downloading TV shows.
-
-**Helm Chart**: https://artifacthub.io/packages/helm/pree-helm-charts/sonarr
-
-**Namespace**: `media`
-
-### Access
-
-**Primary (Tailscale):**
-```bash
-# Web interface
-http://sonarr:8989
-```
-
-**Fallback (NodePort):**
-```bash
-# Get access URL
-minikube service sonarr -n media
-```
-
-### Configuration
-
-Sonarr is configured with:
-- Config storage: 1Gi PVC
-- Media storage: 50Gi PVC
-- NodePort service (port 8989)
-
-### First-Time Setup
-
-1. Access the web interface
-2. Configure download client (qBittorrent)
-3. Add indexers
-4. Set up quality profiles
-5. Add TV shows
-
-### Integration with qBittorrent
-
-In Sonarr settings:
-- Host: `qbittorrent.media.svc.cluster.local`
-- Port: `8080`
-
-### Persistent Data
-
-- Config: `/config` (1Gi)
-- Media: `/media` (50Gi)
-
----
-
 ## qBittorrent
 
 **Purpose**: BitTorrent client for downloading media.
@@ -164,13 +116,12 @@ In Sonarr settings:
 **Primary (Tailscale):**
 ```bash
 # Web interface
-http://qbittorrent:8080
+http://qbittorrent
 ```
 
-**Fallback (NodePort):**
+**Fallback (Port Forward):**
 ```bash
-# Get access URL
-minikube service qbittorrent -n media
+kubectl port-forward -n media svc/qbittorrent 8080:8080
 ```
 
 ### Default Credentials
@@ -184,34 +135,333 @@ minikube service qbittorrent -n media
 
 qBittorrent is configured with:
 - Config storage: 1Gi PVC
-- Downloads storage: 100Gi PVC
+- Shared downloads storage: 50Gi PVC (shared with Sonarr)
+- BitTorrent port: 51413 (TCP/UDP) - Non-blacklisted port for tracker compatibility
 - Running as user 1000:1000
+- Exposed via Tailscale LoadBalancer
+
+### BitTorrent Port Configuration
+
+The client uses port **51413** instead of default ports (6881-6889) which are commonly blacklisted by trackers and ISPs. This ensures:
+- Better compatibility with private trackers
+- Reduced ISP throttling
+- Compliance with tracker requirements
 
 ### Integration with Sonarr
 
-qBittorrent can be used as the download client for Sonarr.
-
-In qBittorrent:
-1. Enable Web UI (already enabled)
-2. Note the connection details
+qBittorrent serves as the download client for Sonarr with shared storage.
 
 In Sonarr:
 1. Settings → Download Clients → Add → qBittorrent
-2. Host: qbittorrent service name
-3. Port: 8080
-4. Username/Password: qBittorrent credentials
+2. Host: `qbittorrent.media.svc.cluster.local`
+3. Port: `8080`
+4. Username: `admin`
+5. Password: (your password)
+6. Category: `tv-sonarr` (recommended)
 
 ### Persistent Data
 
 - Config: `/config` (1Gi)
-- Downloads: `/downloads` (100Gi)
+- Downloads: `/downloads` (50Gi, shared with Sonarr)
 
 ### Performance Tuning
 
-For better performance, consider adjusting:
-- Connection limits
+Consider adjusting in the Web UI:
+- Connection limits (Tools → Options → Connection)
 - Upload/download limits
 - Disk cache settings
+- Alternative download rate limits
+
+---
+
+## Sonarr
+
+**Purpose**: PVR for managing and downloading TV shows.
+
+**Helm Chart**: https://artifacthub.io/packages/helm/pree-helm-charts/sonarr
+
+**Namespace**: `media`
+
+### Access
+
+**Primary (Tailscale):**
+```bash
+# Web interface
+http://sonarr
+```
+
+**Fallback (Port Forward):**
+```bash
+kubectl port-forward -n media svc/sonarr 8989:8989
+```
+
+### Configuration
+
+Sonarr is configured with:
+- Config storage: 1Gi PVC
+- Media storage: NFS mount to remote server (plex-jellyfin.tail44dd7.ts.net:/Videos/Shows)
+- Shared downloads: 50Gi PVC (shared with qBittorrent)
+- Exposed via Tailscale LoadBalancer
+
+### First-Time Setup
+
+1. Access the web interface
+2. Configure download client (qBittorrent)
+3. Add indexers (via Jackett)
+4. Set up quality profiles
+5. Configure root folder: `/media`
+6. Add TV shows
+
+### Integration with qBittorrent
+
+In Sonarr Settings → Download Clients:
+- Host: `qbittorrent.media.svc.cluster.local`
+- Port: `8080`
+- Username: `admin`
+- Category: `tv-sonarr`
+
+### Integration with Jackett
+
+In Sonarr Settings → Indexers → Add → Torznab → Custom:
+- Name: [Indexer name from Jackett]
+- URL: `http://jackett.media.svc.cluster.local:9117/api/v2.0/indexers/[INDEXER_NAME]/results/torznab/`
+- API Key: Get from Jackett web UI
+- Categories: 5000 (TV)
+
+### Persistent Data
+
+- Config: `/config` (1Gi PVC)
+- Media: `/media` (NFS mount to remote server)
+- Downloads: `/downloads` (50Gi PVC, shared with qBittorrent)
+
+---
+
+## Jackett
+
+**Purpose**: Proxy server for torrent indexers, translating queries from apps like Sonarr into tracker-specific searches.
+
+**Helm Chart**: https://artifacthub.io/packages/helm/k8s-at-home/jackett
+
+**Namespace**: `media`
+
+### Access
+
+**Primary (Tailscale):**
+```bash
+# Web interface
+http://jackett
+```
+
+**Fallback (Port Forward):**
+```bash
+kubectl port-forward -n media svc/jackett 9117:9117
+```
+
+### Configuration
+
+Jackett is configured with:
+- Config storage: 1Gi PVC
+- Port: 9117
+- Exposed via Tailscale LoadBalancer
+
+### First-Time Setup
+
+1. Access the web interface at `http://jackett`
+2. Copy the API Key (top right corner)
+3. Add indexers:
+   - Click **Add indexer**
+   - Search for your preferred indexers
+   - Configure credentials for each indexer
+   - Click **Test** to verify functionality
+   - Click **OK** to save
+
+### Adding Indexers to Sonarr
+
+For each indexer configured in Jackett:
+
+1. In Jackett, click **Copy Torznab Feed** for the indexer
+2. In Sonarr:
+   - Settings → Indexers → Add → Torznab → Custom
+   - Name: [Indexer name]
+   - URL: The Torznab feed URL from Jackett
+   - API Key: Your Jackett API key
+   - Categories: 5000 (TV)
+   - Click **Test** then **Save**
+
+### Popular Indexers
+
+Recommended public/semi-private indexers:
+- **1337x** - General public tracker
+- **EZTV** - TV-focused tracker  
+- **RARBG** - High-quality releases
+- **The Pirate Bay** - Large public tracker
+- **Torznab** - For private trackers
+
+**Note**: Private trackers require accounts and may have specific rules.
+
+### Persistent Data
+
+- Config: `/config` (1Gi PVC)
+- Includes indexer configurations and API keys
+
+### Troubleshooting
+
+**Indexer not working:**
+1. Click **Test** in Jackett to verify connectivity
+2. Check if the indexer site is accessible
+3. Verify credentials if using a private tracker
+4. Check Jackett logs for details
+
+**Sonarr can't reach Jackett:**
+1. Verify service name: `jackett.media.svc.cluster.local:9117`
+2. Check API key matches
+3. Test connectivity: `kubectl exec -n media <sonarr-pod> -- wget -O- http://jackett.media.svc.cluster.local:9117`
+
+---
+
+## Crontab UI
+
+**Purpose**: Web-based GUI for managing cron jobs on the Minikube host machine.
+
+**Image**: alseambusher/crontab-ui
+
+**Namespace**: `admin`
+
+### Access
+
+**Primary (Tailscale):**
+```bash
+# Web interface
+http://cron
+```
+
+**Fallback (Port Forward):**
+```bash
+kubectl port-forward -n admin svc/crontab-ui 8000:8000
+```
+
+### Configuration
+
+Crontab UI is configured with:
+- Direct access to host cron via hostPath mount
+- Runs with `hostNetwork: true` and `hostPID: true` for host access
+- Config storage: 100Mi PVC for UI data
+- Port: 8000
+- Exposed via Tailscale LoadBalancer
+
+### Key Features
+
+- **Visual Cron Editor** - Easy-to-use interface for creating cron jobs
+- **Direct Host Access** - Manages cron jobs on the Minikube host, not in containers
+- **Syntax Validation** - Validates cron expressions before saving
+- **Job History** - View execution logs and history
+- **Backup/Restore** - Export and import cron configurations
+
+### First-Time Setup
+
+1. Access the web interface at `http://cron`
+2. The interface will load with any existing cron jobs from the host
+3. No authentication required (secured via Tailscale network)
+
+### Creating a Cron Job
+
+1. Click **New** to add a new cron job
+2. Fill in the details:
+   - **Name**: Descriptive name for the job
+   - **Command**: The actual command to execute on the host
+   - **Schedule**: Use the cron expression builder or manual entry
+3. Click **Save**
+4. The job will be added to the host's crontab
+
+### Example Use Cases
+
+**Automated Backups:**
+```bash
+# Daily backup at 2 AM
+Schedule: 0 2 * * *
+Command: /usr/local/bin/backup-script.sh
+```
+
+**System Maintenance:**
+```bash
+# Weekly cleanup on Sundays at midnight
+Schedule: 0 0 * * 0
+Command: /usr/bin/apt-get autoremove -y && /usr/bin/apt-get autoclean -y
+```
+
+**Application Restarts:**
+```bash
+# Restart service every 6 hours
+Schedule: 0 */6 * * *
+Command: systemctl restart myservice
+```
+
+### Important Notes
+
+**⚠️ Host Access:**
+- This tool has privileged access to the Minikube host
+- Commands execute with the same permissions as the container (root)
+- Be cautious when adding or modifying cron jobs
+- Test commands manually before scheduling
+
+**⚠️ Security:**
+- Only accessible via Tailscale network
+- No built-in authentication (relies on network security)
+- Limit access to trusted Tailscale users only
+
+### Persistent Data
+
+- Config: `/crontab-ui` (100Mi PVC) - UI settings and backups
+- Host Cron: `/var/spool/cron` (hostPath mount) - Actual cron jobs
+
+### Viewing Logs
+
+Check cron execution on the host:
+
+```bash
+# SSH into Minikube
+minikube ssh
+
+# View cron logs
+sudo tail -f /var/log/syslog | grep CRON
+
+# Or check specific user's cron
+sudo crontab -l
+```
+
+### Backup and Restore
+
+**Via UI:**
+1. Click **Backup** to download all cron jobs as JSON
+2. Click **Import** to restore from a backup file
+
+**Manual Backup:**
+```bash
+# Backup host crontab
+minikube ssh "sudo crontab -l" > crontab-backup.txt
+
+# Restore
+minikube ssh "sudo crontab -" < crontab-backup.txt
+```
+
+### Troubleshooting
+
+**Cron jobs not executing:**
+1. Check if cron service is running: `minikube ssh "sudo systemctl status cron"`
+2. Verify job syntax in the crontab
+3. Check system logs: `minikube ssh "sudo tail -f /var/log/syslog | grep CRON"`
+4. Ensure command uses absolute paths
+
+**UI can't access host cron:**
+1. Verify pod is running: `kubectl get pods -n admin`
+2. Check hostPath mount: `kubectl describe pod -n admin <pod-name>`
+3. Verify permissions: Pod needs privileged access
+
+**Jobs execute but fail:**
+1. Test command manually on host first
+2. Use absolute paths for all commands and files
+3. Redirect output to log file: `command >> /var/log/mycron.log 2>&1`
+4. Set environment variables in the cron command if needed
 
 ---
 
@@ -250,9 +500,10 @@ minikube service pihole-web -n pihole
 
 Pi-hole is configured with:
 - Web interface on port 80
-- DNS service (NodePort)
+- DNS service exposed via Tailscale
 - Persistent storage (1Gi PVC)
-- Upstream DNS: Quad DNS (9.9.9.9, 149.112.112.112)
+- Upstream DNS: Cloudflare (1.1.1.1, 1.0.0.1)
+- Pre-configured blocklist: Developer Dan's ads-and-tracking-extended
 - Resource limits: 500m CPU, 512Mi RAM
 
 ### First-Time Setup
@@ -297,6 +548,11 @@ The web admin interface provides:
 - **Blocklist Management**: Add/remove blocklists
 - **Whitelist/Blacklist**: Fine-tune blocking
 - **Settings**: Configure DNS, DHCP, and other options
+
+### Pre-configured Blocklists
+
+Pi-hole comes with the following blocklist pre-configured:
+- **Developer Dan's Ads & Tracking Extended**: https://www.github.developerdan.com/hosts/lists/ads-and-tracking-extended.txt
 
 ### Adding Custom Blocklists
 

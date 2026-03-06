@@ -7,6 +7,7 @@ gogs_namespace: "git"
 sonarr_namespace: "media"
 qbittorrent_namespace: "media"
 jackett_namespace: "media"
+crontab_ui_namespace: "admin"
 pihole_namespace: "pihole"
 
 # Tailscale Operator configuration (override in group_vars/all.yml)
@@ -21,6 +22,7 @@ tailscale_gogs_ssh_hostname: "gogs-ssh"
 tailscale_sonarr_hostname: "sonarr"
 tailscale_qbittorrent_hostname: "qbittorrent"
 tailscale_jackett_hostname: "jackett"
+tailscale_crontab_ui_hostname: "cron"
 tailscale_pihole_hostname: "pihole"
 tailscale_pihole_dns_hostname: "pihole-dns"
 

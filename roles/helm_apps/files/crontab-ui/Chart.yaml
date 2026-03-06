@@ -1,0 +1,14 @@
+apiVersion: v2
+name: crontab-ui
+description: A Helm chart for Crontab UI - Web interface for managing host cron jobs
+type: application
+version: 1.0.0
+appVersion: "latest"
+keywords:
+  - cron
+  - crontab
+  - scheduler
+  - automation
+home: https://github.com/alseambusher/crontab-ui
+maintainers:
+  - name: homelab

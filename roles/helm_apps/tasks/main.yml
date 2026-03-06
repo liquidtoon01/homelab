@@ -43,5 +43,8 @@
 - name: Deploy Jackett
   ansible.builtin.include_tasks: jackett.yml
 
+- name: Deploy Crontab UI
+  ansible.builtin.include_tasks: crontab-ui.yml
+
 - name: Deploy Pi-hole
   ansible.builtin.include_tasks: pihole.yml
