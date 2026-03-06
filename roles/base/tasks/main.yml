@@ -20,6 +20,7 @@
       - unzip
       - conntrack
       - socat
+      - cifs-utils
     state: present
     update_cache: yes
 
@@ -51,15 +52,10 @@
 - name: Reset SSH connection to activate docker group
   ansible.builtin.meta: reset_connection
 
-- name: Install cifs-utils on Minikube node
-  ansible.builtin.command: minikube ssh "sudo apt-get update && sudo apt-get install -y cifs-utils"
-  failed_when: false
-  changed_when: false
-  become: no
 
 - name: Mount SMB share on Minikube node
   ansible.builtin.command: >
-    minikube ssh "sudo mkdir -p /mnt/media-shows && 
+    sudo mkdir -p /mnt/media-shows && 
     sudo mount -t cifs //plex-jellyfin..tail44dd7.ts.net/Videos/Shows /mnt/media-shows 
   failed_when: false
   changed_when: false
