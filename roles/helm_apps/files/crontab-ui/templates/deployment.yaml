@@ -41,7 +41,7 @@ spec:
         {{- end }}
         {{- if .Values.persistence.enabled }}
         - name: data
-          mountPath: /crontab-ui
+          mountPath: /crontab-ui/db
         {{- end }}
         securityContext:
           {{- toYaml .Values.securityContext | nindent 10 }}
