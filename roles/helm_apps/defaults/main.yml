@@ -27,8 +27,8 @@ tailscale_pihole_dns_hostname: "pihole-dns"
 # Helm chart versions (use "latest" or specific version)
 gogs_chart_version: ""
 sonarr_chart_version: ""
-qrowlarr_chart_version: ""
-pbittorrent_chart_version: ""
+qbittorrent_chart_version: ""
+prowlarr_chart_version: ""
 pihole_chart_version: ""
 
 # Application configurations
