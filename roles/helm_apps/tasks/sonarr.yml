@@ -24,17 +24,35 @@
             storage: 1Gi
       ---
       apiVersion: v1
+      kind: PersistentVolume
+      metadata:
+        name: sonarr-media-pv
+      spec:
+        capacity:
+          storage: 500Gi
+        accessModes:
+          - ReadWriteMany
+        persistentVolumeReclaimPolicy: Retain
+        csi:
+          driver: smb.csi.k8s.io
+          readOnly: false
+          volumeHandle: sonarr-media-smb
+          volumeAttributes:
+            source: //100.90.217.18/Videos/Shows
+      ---
+      apiVersion: v1
       kind: PersistentVolumeClaim
       metadata:
         name: sonarr-media
         namespace: {{ sonarr_namespace }}
       spec:
         accessModes:
-          - ReadWriteOnce
-        storageClassName: {{ storage_class }}
+          - ReadWriteMany
+        storageClassName: ""
         resources:
           requests:
-            storage: 50Gi
+            storage: 500Gi
+        volumeName: sonarr-media-pv
   become: no
 
 - name: Apply Sonarr PVCs

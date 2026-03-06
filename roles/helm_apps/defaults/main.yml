@@ -33,4 +33,3 @@ pihole_chart_version: ""
 
 # Application configurations
 pihole_admin_password: "{{ vault_pihole_admin_password | default('changeme') }}"
-
