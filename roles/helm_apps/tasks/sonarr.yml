@@ -29,6 +29,45 @@
   changed_when: true
   become: no
 
+- name: Create Sonarr NFS PV and PVC
+  ansible.builtin.copy:
+    dest: /tmp/sonarr-nfs.yaml
+    content: |
+      ---
+      apiVersion: v1
+      kind: PersistentVolume
+      metadata:
+        name: sonarr-media-pv
+      spec:
+        capacity:
+          storage: 500Gi
+        accessModes:
+          - ReadWriteMany
+        persistentVolumeReclaimPolicy: Retain
+        nfs:
+          server: plex-jellyfin.tail44dd7.ts.net
+          path: /Videos/Shows
+      ---
+      apiVersion: v1
+      kind: PersistentVolumeClaim
+      metadata:
+        name: sonarr-media
+        namespace: {{ sonarr_namespace }}
+      spec:
+        accessModes:
+          - ReadWriteMany
+        storageClassName: ""
+        resources:
+          requests:
+            storage: 500Gi
+        volumeName: sonarr-media-pv
+  become: no
+
+- name: Apply Sonarr NFS PV and PVC
+  ansible.builtin.command: kubectl apply -f /tmp/sonarr-nfs.yaml
+  changed_when: true
+  become: no
+
 - name: Update Helm repositories
   ansible.builtin.command: helm repo update
   changed_when: false
@@ -62,9 +101,7 @@
           existingClaim: sonarr-config
         media:
           enabled: true
-          type: nfs
-          server: plex-jellyfin.tail44dd7.ts.net
-          path: d/Videos/Shows
+          existingClaim: sonarr-media
           mountPath: /media
         downloads:
           enabled: true
