@@ -1,0 +1,129 @@
+{
+  "infrastructure-provisioning": {
+    "required_patterns": {
+      "version-management": "Always check for 'latest' version via GitHub API or package manager, set fact for install version",
+      "binary-installation": "Use get_url or apt for binary installation, verify with stat before downloading",
+      "service-lifecycle": "Use systemd module to start/enable services after installation",
+      "idempotency-checks": "Always check existence/status before installation or configuration changes",
+      "privilege-handling": "Use become: no for user-specific operations (minikube, kubectl), become: yes for system operations"
+    },
+    "architectural_constraints": {
+      "installation-flow": "All infrastructure components follow: check existing -> fetch latest version -> download/install -> configure -> enable service",
+      "version-strategy": "Support 'latest' as default with dynamic version fetching from GitHub releases or package repositories",
+      "user-context": "Minikube and kubectl operations must run as non-root user, Docker and system packages require root",
+      "state-verification": "Every installation task must include a status check command that can be used for verification"
+    }
+  },
+  "application-deployment": {
+    "required_patterns": {
+      "namespace-creation": "Always create namespace with kubectl before deploying applications, use failed_when: false for idempotency",
+      "helm-repository-management": "Add helm repos with loop, use register + failed_when: false for existing repos",
+      "helm-deployment": "Use 'helm upgrade --install' pattern for idempotent deployments",
+      "manifest-based-deployment": "For complex apps (Gogs, Sonarr, qBittorrent), use ansible.builtin.copy to create manifest files in /tmp, then kubectl apply",
+      "separated-task-files": "Each application has its own task file in roles/helm_apps/tasks/{app}.yml",
+      "tailscale-ingress": "All applications use Tailscale Ingress resources for external access, no LoadBalancer or NodePort services"
+    },
+    "architectural_constraints": {
+      "deployment-method": "Applications deployed via Helm charts OR in-line Kubernetes manifests (YAML in ansible.builtin.copy)",
+      "namespace-isolation": "Each application or service group in separate namespace (git, media, pihole, tailscale)",
+      "ingress-strategy": "All external access via Tailscale Ingress objects with custom hostnames (e.g., http://gogs, http://sonarr)",
+      "stateful-applications": "StatefulSets with PersistentVolumeClaims for applications requiring persistent storage",
+      "service-discovery": "Internal service-to-service via Kubernetes DNS (service.namespace.svc.cluster.local)",
+      "configuration-management": "Use ConfigMaps for application configuration, never hardcode values in manifests"
+    }
+  },
+  "configuration-management": {
+    "required_patterns": {
+      "variable-hierarchy": "group_vars/all.yml for common variables, vault.yml for secrets, role defaults/main.yml for role-specific defaults",
+      "vault-integration": "Sensitive values use {{ vault_variable_name | default('') }} pattern with empty string fallback",
+      "inventory-structure": "hosts.yml defines hosts under 'all' group, with children groups for logical organization (kubernetes)",
+      "version-variables": "All component versions defined as variables (minikube_version, kubectl_version, helm_version) with 'latest' as default",
+      "resource-variables": "Kubernetes resource limits defined as variables (minikube_cpus, minikube_memory, minikube_disk_size)"
+    },
+    "architectural_constraints": {
+      "secret-handling": "All secrets must be defined in vault.yml (encrypted) and referenced with vault_ prefix in all.yml",
+      "defaults-vs-vars": "Role defaults for component-specific configuration, group_vars for deployment-wide settings",
+      "no-inline-secrets": "Never hardcode secrets, auth keys, or passwords - always use vault variables with defaults",
+      "variable-naming": "Use {component}_{setting} pattern (e.g., tailscale_auth_key, minikube_cpus)",
+      "conditional-execution": "Check for variable existence and length before using sensitive variables (tailscale auth key pattern)"
+    }
+  },
+  "security-hardening": {
+    "required_patterns": {
+      "ssh-configuration": "Backup SSH config before modifications with timestamp suffix",
+      "automated-updates": "Use unattended-upgrades with Jinja2 templates (20auto-upgrades.j2, 50unattended-upgrades.j2)",
+      "vault-encryption": "All sensitive data encrypted with ansible-vault (vault.yml)",
+      "vpn-only-access": "All services accessible only via Tailscale VPN, no public exposure",
+      "user-privilege-separation": "Use become/become_user selectively, minimize root operations"
+    },
+    "architectural_constraints": {
+      "no-public-exposure": "No services exposed via public IPs or ports, all ingress via Tailscale",
+      "secret-encryption": "Vault password file (.vault_pass) must exist for encrypted variable access",
+      "update-automation": "Automatic security updates enabled via apt unattended-upgrades",
+      "template-based-config": "System configuration files deployed via templates/ directory with .j2 extension",
+      "backup-before-modify": "Always backup original configuration files before modifications"
+    }
+  },
+  "storage-management": {
+    "required_patterns": {
+      "storage-class-verification": "Always verify storage class exists before application deployment",
+      "default-storage-class": "Use 'standard' storage class as default, patched with annotation",
+      "persistent-volumes": "Use PersistentVolumeClaims in application manifests for stateful apps",
+      "volume-mounting": "Minikube started with --mount-string for host path access",
+      "storage-provisioner-addon": "Enable storage-provisioner addon if storage class missing"
+    },
+    "architectural_constraints": {
+      "storage-backend": "Minikube storage provisioner as only storage backend (no external storage)",
+      "volume-lifecycle": "Volumes persist across pod restarts but are tied to Minikube cluster lifecycle",
+      "backup-strategy": "Backup entire Minikube persistent volume directory, not individual volumes",
+      "storage-location": "Storage provisioner uses Minikube's internal storage path"
+    }
+  },
+  "backup-recovery": {
+    "required_patterns": {
+      "timestamp-naming": "Backup files named with ISO8601 timestamp (minikube-volumes-backup-{timestamp}.tar.gz)",
+      "pre-backup-validation": "Check source directory exists and is readable before backup",
+      "backup-metadata": "Create info file with backup timestamp, source path, hostname, item count",
+      "error-handling": "Use block/rescue pattern for backup tasks with proper error reporting",
+      "compression": "Use tar.gz for compression with archive module"
+    },
+    "architectural_constraints": {
+      "backup-scope": "Full Minikube volume directory backup, not application-specific backups",
+      "transfer-method": "Backup transfer via Tailscale network to remote hosts",
+      "retention-policy": "No automated cleanup - manual retention management",
+      "restore-process": "Manual restore process (extract to original location)"
+    }
+  },
+  "role-architecture": {
+    "required_patterns": {
+      "role-structure": "Every role has tasks/main.yml, defaults/main.yml, meta/main.yml",
+      "task-organization": "Complex roles split tasks into separate files included via include_tasks",
+      "role-dependencies": "Dependencies declared in meta/main.yml (none currently used)",
+      "defaults-convention": "All configurable values in defaults/main.yml with sensible defaults",
+      "idempotent-operations": "All tasks designed to be safely re-run with changed_when and failed_when conditions"
+    },
+    "architectural_constraints": {
+      "role-isolation": "Each infrastructure component or application group as separate role",
+      "no-cross-dependencies": "Roles do not depend on each other via meta dependencies (orchestrated via playbooks)",
+      "task-modularity": "Application deployments split into per-app task files (gogs.yml, sonarr.yml, etc.)",
+      "template-usage": "Only apt_updates role uses templates (for system config files)",
+      "standardized-naming": "Role directories match component names (minikube, kubectl, helm, tailscale)"
+    }
+  },
+  "orchestration": {
+    "required_patterns": {
+      "playbook-composition": "site.yml imports infrastructure.yml and applications.yml",
+      "tag-based-execution": "All role inclusions tagged for selective execution (infrastructure, applications, component-specific)",
+      "play-targeting": "Use 'hosts: all' with specific role assignments",
+      "sequential-execution": "Infrastructure before applications (controlled via import order)",
+      "privilege-escalation": "become: yes at play level, overridden at task level when needed"
+    },
+    "architectural_constraints": {
+      "execution-order": "Must run infrastructure playbook before applications playbook",
+      "inventory-requirement": "Must specify inventory with -i flag (no default in ansible.cfg points to file)",
+      "local-first-design": "Default inventory uses ansible_connection: local for localhost",
+      "makefile-wrapper": "Make targets provide simplified interface to complex ansible-playbook commands",
+      "single-host-focus": "Designed for single target host (kimsufi), not multi-host orchestration"
+    }
+  }
+}

@@ -1,0 +1,129 @@
+{
+  "documentation": [
+    "./README.md",
+    "./GETTING_STARTED.md",
+    "./REQUIREMENTS.md",
+    "./docs/ANSIBLE_VAULT.md",
+    "./docs/PROJECT_STRUCTURE.md",
+    "./docs/applications.md",
+    "./docs/bootstrap.md",
+    "./docs/infrastructure.md",
+    "./docs/ssh-security.md",
+    "./docs/tailscale-operator.md",
+    "./docs/troubleshooting.md",
+    "./roles/backup/README.md",
+    "./roles/helm_apps/files/crontab-ui/README.md"
+  ],
+  "configuration": [
+    "./ansible.cfg",
+    "./.gitignore",
+    "./vault.yml.example"
+  ],
+  "build-automation": [
+    "./Makefile"
+  ],
+  "bootstrap-scripts": [
+    "./bootstrap.sh",
+    "./setup-vault.sh",
+    "./verify.sh"
+  ],
+  "ansible-playbooks": [
+    "./playbooks/site.yml",
+    "./playbooks/infrastructure.yml",
+    "./playbooks/applications.yml",
+    "./playbooks/backup.yml"
+  ],
+  "ansible-inventory": [
+    "./inventory/hosts.yml"
+  ],
+  "ansible-group-variables": [
+    "./group_vars/all.yml"
+  ],
+  "ansible-role-tasks": [
+    "./roles/apt_updates/tasks/main.yml",
+    "./roles/backup/tasks/main.yml",
+    "./roles/base/tasks/main.yml",
+    "./roles/helm/tasks/main.yml",
+    "./roles/helm_apps/tasks/main.yml",
+    "./roles/helm_apps/tasks/crontab-ui.yml",
+    "./roles/helm_apps/tasks/gogs.yml",
+    "./roles/helm_apps/tasks/jackett.yml",
+    "./roles/helm_apps/tasks/pihole.yml",
+    "./roles/helm_apps/tasks/qbittorrent.yml",
+    "./roles/helm_apps/tasks/sonarr.yml",
+    "./roles/helm_apps/tasks/storage.yml",
+    "./roles/helm_apps/tasks/tailscale-operator.yml",
+    "./roles/kubectl/tasks/main.yml",
+    "./roles/minikube/tasks/main.yml",
+    "./roles/tailscale/tasks/main.yml"
+  ],
+  "ansible-role-defaults": [
+    "./roles/apt_updates/defaults/main.yml",
+    "./roles/backup/defaults/main.yml",
+    "./roles/helm/defaults/main.yml",
+    "./roles/helm_apps/defaults/main.yml",
+    "./roles/kubectl/defaults/main.yml",
+    "./roles/minikube/defaults/main.yml",
+    "./roles/tailscale/defaults/main.yml"
+  ],
+  "ansible-role-meta": [
+    "./roles/apt_updates/meta/main.yml",
+    "./roles/backup/meta/main.yml",
+    "./roles/base/meta/main.yml",
+    "./roles/helm/meta/main.yml",
+    "./roles/helm_apps/meta/main.yml",
+    "./roles/kubectl/meta/main.yml",
+    "./roles/minikube/meta/main.yml",
+    "./roles/tailscale/meta/main.yml"
+  ],
+  "ansible-templates": [
+    "./roles/apt_updates/templates/20auto-upgrades.j2",
+    "./roles/apt_updates/templates/50unattended-upgrades.j2"
+  ],
+  "helm-charts": [
+    "./roles/helm_apps/files/crontab-ui/Chart.yaml",
+    "./roles/helm_apps/files/crontab-ui/values.yaml",
+    "./roles/helm_apps/files/crontab-ui/.helmignore"
+  ],
+  "helm-templates": [
+    "./roles/helm_apps/files/crontab-ui/templates/_helpers.tpl",
+    "./roles/helm_apps/files/crontab-ui/templates/deployment.yaml",
+    "./roles/helm_apps/files/crontab-ui/templates/pvc.yaml",
+    "./roles/helm_apps/files/crontab-ui/templates/service.yaml"
+  ],
+  "kubernetes-manifests": [
+    "./roles/helm_apps/tasks/gogs.yml",
+    "./roles/helm_apps/tasks/jackett.yml",
+    "./roles/helm_apps/tasks/pihole.yml",
+    "./roles/helm_apps/tasks/qbittorrent.yml",
+    "./roles/helm_apps/tasks/sonarr.yml",
+    "./roles/helm_apps/tasks/storage.yml",
+    "./roles/helm_apps/tasks/tailscale-operator.yml"
+  ],
+  "system-configuration": [
+    "./roles/apt_updates/templates/20auto-upgrades.j2",
+    "./roles/apt_updates/templates/50unattended-upgrades.j2"
+  ],
+  "infrastructure-roles": [
+    "./roles/minikube/tasks/main.yml",
+    "./roles/kubectl/tasks/main.yml",
+    "./roles/helm/tasks/main.yml",
+    "./roles/tailscale/tasks/main.yml",
+    "./roles/apt_updates/tasks/main.yml",
+    "./roles/base/tasks/main.yml"
+  ],
+  "application-deployment-roles": [
+    "./roles/helm_apps/tasks/main.yml",
+    "./roles/helm_apps/tasks/crontab-ui.yml",
+    "./roles/helm_apps/tasks/gogs.yml",
+    "./roles/helm_apps/tasks/jackett.yml",
+    "./roles/helm_apps/tasks/pihole.yml",
+    "./roles/helm_apps/tasks/qbittorrent.yml",
+    "./roles/helm_apps/tasks/sonarr.yml",
+    "./roles/helm_apps/tasks/storage.yml",
+    "./roles/helm_apps/tasks/tailscale-operator.yml"
+  ],
+  "backup-roles": [
+    "./roles/backup/tasks/main.yml"
+  ]
+}
