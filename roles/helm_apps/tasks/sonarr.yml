@@ -5,9 +5,9 @@
   changed_when: false
   become: no
 
-- name: Create Sonarr PVCs manifest
+- name: Create Sonarr config PVC
   ansible.builtin.copy:
-    dest: /tmp/sonarr-pvcs.yaml
+    dest: /tmp/sonarr-config-pvc.yaml
     content: |
       ---
       apiVersion: v1
@@ -22,41 +22,10 @@
         resources:
           requests:
             storage: 1Gi
-      ---
-      apiVersion: v1
-      kind: PersistentVolume
-      metadata:
-        name: sonarr-media-pv
-      spec:
-        capacity:
-          storage: 500Gi
-        accessModes:
-          - ReadWriteMany
-        persistentVolumeReclaimPolicy: Retain
-        csi:
-          driver: smb.csi.k8s.io
-          readOnly: false
-          volumeHandle: sonarr-media-smb
-          volumeAttributes:
-            source: //100.90.217.18/Videos/Shows
-      ---
-      apiVersion: v1
-      kind: PersistentVolumeClaim
-      metadata:
-        name: sonarr-media
-        namespace: {{ sonarr_namespace }}
-      spec:
-        accessModes:
-          - ReadWriteMany
-        storageClassName: ""
-        resources:
-          requests:
-            storage: 500Gi
-        volumeName: sonarr-media-pv
   become: no
 
-- name: Apply Sonarr PVCs
-  ansible.builtin.command: kubectl apply -f /tmp/sonarr-pvcs.yaml
+- name: Apply Sonarr config PVC
+  ansible.builtin.command: kubectl apply -f /tmp/sonarr-config-pvc.yaml
   changed_when: true
   become: no
 
@@ -93,7 +62,8 @@
           existingClaim: sonarr-config
         media:
           enabled: true
-          existingClaim: sonarr-media
+          type: hostPath
+          hostPath: /mnt/media-shows
           mountPath: /media
         downloads:
           enabled: true
