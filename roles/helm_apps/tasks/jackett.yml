@@ -48,7 +48,7 @@
 
 - name: Deploy Jackett using Helm
   ansible.builtin.command: >
-    helm upgrade --install jackett gabe565/jackett
+    helm upgrade --install jackett k8s-at-home/jackett
     --namespace {{ jackett_namespace }}
     --values /tmp/jackett-values.yaml
     {{ '--version ' + jackett_chart_version if jackett_chart_version else '' }}
