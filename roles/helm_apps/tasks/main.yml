@@ -34,11 +34,11 @@
 - name: Deploy Gogs
   ansible.builtin.include_tasks: gogs.yml
 
-- name: Deploy Sonarr
-  ansible.builtin.include_tasks: sonarr.yml
-
 - name: Deploy qBittorrent
   ansible.builtin.include_tasks: qbittorrent.yml
+
+- name: Deploy Sonarr
+  ansible.builtin.include_tasks: sonarr.yml
 
 - name: Deploy Jackett
   ansible.builtin.include_tasks: jackett.yml

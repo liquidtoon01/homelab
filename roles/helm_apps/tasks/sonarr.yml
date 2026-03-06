@@ -105,10 +105,8 @@
           mountPath: /media
         downloads:
           enabled: true
+          existingClaim: shared-downloads
           mountPath: /downloads
-          storageClass: {{ storage_class }}
-          accessMode: ReadWriteMany
-          size: 10Gi
       
       resources:
         limits:

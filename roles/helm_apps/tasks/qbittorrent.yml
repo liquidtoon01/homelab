@@ -10,6 +10,30 @@
   changed_when: false
   become: no
 
+- name: Create shared downloads PVC
+  ansible.builtin.copy:
+    dest: /tmp/shared-downloads-pvc.yaml
+    content: |
+      ---
+      apiVersion: v1
+      kind: PersistentVolumeClaim
+      metadata:
+        name: shared-downloads
+        namespace: {{ qbittorrent_namespace }}
+      spec:
+        accessModes:
+          - ReadWriteMany
+        storageClassName: {{ storage_class }}
+        resources:
+          requests:
+            storage: 50Gi
+  become: no
+
+- name: Apply shared downloads PVC
+  ansible.builtin.command: kubectl apply -f /tmp/shared-downloads-pvc.yaml
+  changed_when: true
+  become: no
+
 - name: Create qBittorrent Helm values file
   ansible.builtin.copy:
     dest: /tmp/qbittorrent-values.yaml
@@ -51,10 +75,8 @@
           size: 1Gi
         downloads:
           enabled: true
+          existingClaim: shared-downloads
           mountPath: /downloads
-          storageClass: {{ storage_class }}
-          accessMode: ReadWriteMany
-          size: 10Gi
       
       resources:
         limits:
