@@ -20,7 +20,7 @@
 
       hostAccess:
         enabled: true
-        cronPath: /var/spool/cron
+        cronPath: /etc/crontabs
 
       hostNetwork: true
       hostPID: true
