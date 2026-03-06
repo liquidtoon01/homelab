@@ -108,10 +108,10 @@
                 ttl 30
             }
             prometheus :9153
-            forward . 9.9.9.9 149.112.112.112 1.1.1.1 {
-                max_concurrent 1000
+            forward . /etc/resolv.conf {
+                except cluster.local in-addr.arpa ip6.arpa
             }
-            cache 30
+            cache 60
             loop
             reload
             loadbalance
@@ -135,6 +135,7 @@
             k8s-app: kube-dns
         spec:
           serviceAccountName: coredns
+          dnsPolicy: Default
           tolerations:
           - key: "CriticalAddonsOnly"
             operator: "Exists"
