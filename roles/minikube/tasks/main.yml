@@ -48,15 +48,23 @@
     content: |
       [Unit]
       Description=Minikube mount for host cron directory
-      After=multi-user.target
-      Requires=multi-user.target
+      After=network.target
+      Wants=network.target
 
       [Service]
       Type=simple
       User={{ ansible_user_id }}
+      Group={{ ansible_user_id }}
+      Environment="HOME=/home/{{ ansible_user_id }}"
+      Environment="KUBECONFIG=/home/{{ ansible_user_id }}/.kube/config"
+      Environment="MINIKUBE_HOME=/home/{{ ansible_user_id }}"
+      WorkingDirectory=/home/{{ ansible_user_id }}
+      ExecStartPre=/bin/sh -c 'while ! {{ minikube_install_path }}/minikube status >/dev/null 2>&1; do sleep 2; done'
       ExecStart={{ minikube_install_path }}/minikube mount {{ minikube_host_cron_path }}:/host-cron-real --gid=0 --uid=0
       Restart=on-failure
       RestartSec=10
+      StandardOutput=journal
+      StandardError=journal
 
       [Install]
       WantedBy=multi-user.target
