@@ -62,8 +62,9 @@
           existingClaim: sonarr-config
         media:
           enabled: true
-          type: hostPath
-          hostPath: /mnt/media-shows
+          type: nfs
+          server: plex-jellyfin.tail44dd7.ts.net
+          path: /Videos/Shows
           mountPath: /media
         downloads:
           enabled: true

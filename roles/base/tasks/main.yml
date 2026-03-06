@@ -21,6 +21,7 @@
       - conntrack
       - socat
       - cifs-utils
+      - nfs-common
     state: present
     update_cache: yes
 
@@ -51,13 +52,3 @@
 
 - name: Reset SSH connection to activate docker group
   ansible.builtin.meta: reset_connection
-
-
-- name: Mount SMB share on host
-  ansible.builtin.command: >
-    sudo mkdir -p /mnt/media-shows && 
-    sudo mount -t cifs //plex-jellyfin.tail44dd7.ts.net/Videos/Shows /mnt/media-shows 
-  failed_when: false
-  changed_when: false
-  become: no
-  no_log: true

@@ -41,7 +41,3 @@ pihole_namespace: "pihole"
 
 # Storage configuration
 storage_class: "standard"
-
-# Application configurations
-vault_sonarr_smb_username: "your_username"
-vault_sonarr_smb_password: "your_password"
