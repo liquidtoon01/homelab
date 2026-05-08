@@ -19,6 +19,16 @@
   ansible.builtin.apt:
     name: tailscale
     state: present
+    
+- name: Enable IP forwarding for exit node
+  ansible.builtin.sysctl:
+    name: "{{ item }}"
+    value: "1"
+    state: present
+    reload: yes
+  loop:
+    - net.ipv4.ip_forward
+    - net.ipv6.conf.all.forwarding
 
 - name: Start and enable Tailscale service
   ansible.builtin.systemd:
@@ -31,7 +41,7 @@
     msg: "Tailscale auth key is {{ 'set' if (tailscale_auth_key is defined and tailscale_auth_key | length > 0) else 'NOT set - skipping connection' }}"
 
 - name: Connect to Tailscale network
-  ansible.builtin.command: "tailscale up --authkey={{ tailscale_auth_key }}"
+  ansible.builtin.command: "tailscale up --authkey={{ tailscale_auth_key }} --advertise-exit-node"
   when: 
     - tailscale_auth_key is defined
     - tailscale_auth_key | length > 0
